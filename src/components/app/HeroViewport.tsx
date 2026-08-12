@@ -125,12 +125,11 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
         </span>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between p-3">
+      <div
+        className={`pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center p-3 transition-opacity duration-500 ${jumps > 0 ? "opacity-0" : "opacity-100"}`}
+      >
         <span className="rounded-full bg-background/70 px-3 py-1 text-[11px] font-medium tracking-wide text-foreground backdrop-blur">
           Tap to jump
-        </span>
-        <span className="rounded-full bg-primary/15 px-3 py-1 text-[11px] font-semibold text-primary">
-          {city.landmark}
         </span>
       </div>
     </div>
