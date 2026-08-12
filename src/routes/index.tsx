@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Droplets, Flame, HeartPulse, Moon, Zap } from "lucide-react";
+import { Flame, Footprints, HeartPulse, Moon, Zap } from "lucide-react";
 import { HeroViewport } from "@/components/app/HeroViewport";
+import { SnakeGame } from "@/components/app/SnakeGame";
+import { TypingText } from "@/components/app/TypingText";
 import { CitySelector } from "@/components/app/CitySelector";
 import {
   HABITS,
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const HABIT_ICONS = { hydrate: Droplets, sleep: Moon, recovery: HeartPulse } as const;
+const HABIT_ICONS = { steps: Footprints, sleep: Moon, recovery: HeartPulse } as const;
 
 function HomePage() {
   const { state, logHabit } = useGameState();
@@ -48,6 +50,10 @@ function HomePage() {
 
   return (
     <div className="space-y-6 px-5 py-5">
+      <h1 className="text-center font-pixel text-[15px] leading-relaxed text-primary">
+        <TypingText text="8-BIT RUNNER" speed={90} />
+      </h1>
+
       <section className="flex items-center gap-3">
         <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border bg-surface p-3">
           <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -71,7 +77,17 @@ function HomePage() {
         </div>
       </section>
 
-      <HeroViewport cityId={state.activeCity} onOpenCities={() => setCitiesOpen(true)} />
+      {state.homeGame === "snake" ? (
+        <SnakeGame />
+      ) : (
+        <HeroViewport cityId={state.activeCity} onOpenCities={() => setCitiesOpen(true)} />
+      )}
+      <p className="text-center font-pixel text-[9px] leading-relaxed text-accent-glow">
+        <TypingText
+          text={`READY PLAYER ONE — ${(state.profile.name.split(" ")[0] ?? "RUNNER").toUpperCase()}`}
+          speed={80}
+        />
+      </p>
       <CitySelector open={citiesOpen} onOpenChange={setCitiesOpen} />
 
       <section className="rounded-2xl border border-border bg-surface p-4">
