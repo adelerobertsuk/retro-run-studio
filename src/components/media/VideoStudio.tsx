@@ -25,6 +25,8 @@ const MODES: { id: Mode; label: string; hint: string }[] = [
 const W = 270; // 9:16 logical canvas
 const H = 480;
 const SCALE = 4;
+const TIME_SCALE = 0.4; // run everything 60% slower for a calm, stable preview
+
 
 /** Pull a rough outfit palette out of the uploaded photo. */
 async function paletteFromImage(file: File): Promise<Palette> {
@@ -113,10 +115,11 @@ export function VideoStudio({ run, totalMiles }: Props) {
     };
 
     const render = () => {
-      if (playing) tickRef.current += 1;
+      if (playing) tickRef.current += TIME_SCALE;
       const t = tickRef.current;
-      const loop = t % 900; // ~15s at 60fps
+      const loop = t % 900; // ~37.5s at 60fps with TIME_SCALE = 0.4
       const groundY = H - 74;
+
 
       if (mode === "maze") {
         const cycle = t % 780;
