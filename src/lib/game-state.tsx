@@ -25,6 +25,8 @@ export type GameState = {
   runs: RunEntry[];
   unlocked: string[];
   adventurerNotes: string;
+  activeCity: string;
+  unlockedCities: string[];
   settings: {
     notifications: boolean;
     stravaSync: boolean;
@@ -91,6 +93,8 @@ function createInitialState(): GameState {
     runs: seedRuns(),
     unlocked: ["rig-rpg", "rig-vhs"],
     adventurerNotes: "Chased the sunset through the east side. Boss defeated at mile 4.",
+    activeCity: "london",
+    unlockedCities: ["london"],
     settings: {
       notifications: true,
       stravaSync: true,
@@ -108,6 +112,8 @@ type Ctx = {
   logHabit: (id: HabitId) => void;
   spendTokens: (amount: number, unlockId: string) => boolean;
   setNotes: (value: string) => void;
+  setActiveCity: (id: string) => void;
+  unlockCity: (id: string, cost: number) => boolean;
   toggleSetting: (key: keyof GameState["settings"]) => void;
 };
 
@@ -165,6 +171,25 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, adventurerNotes: value }));
   }, []);
 
+  const setActiveCity = useCallback((id: string) => {
+    setState((prev) => ({ ...prev, activeCity: id }));
+  }, []);
+
+  const unlockCity = useCallback((id: string, cost: number) => {
+    let ok = false;
+    setState((prev) => {
+      if (prev.unlockedCities.includes(id) || prev.tokens < cost) return prev;
+      ok = true;
+      return {
+        ...prev,
+        tokens: prev.tokens - cost,
+        unlockedCities: [...prev.unlockedCities, id],
+        activeCity: id,
+      };
+    });
+    return ok;
+  }, []);
+
   const toggleSetting = useCallback((key: keyof GameState["settings"]) => {
     setState((prev) => ({
       ...prev,
@@ -173,8 +198,17 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ state, hydrated, logHabit, spendTokens, setNotes, toggleSetting }),
-    [state, hydrated, logHabit, spendTokens, setNotes, toggleSetting],
+    () => ({
+      state,
+      hydrated,
+      logHabit,
+      spendTokens,
+      setNotes,
+      setActiveCity,
+      unlockCity,
+      toggleSetting,
+    }),
+    [state, hydrated, logHabit, spendTokens, setNotes, setActiveCity, unlockCity, toggleSetting],
   );
 
   return <GameStateContext.Provider value={value}>{children}</GameStateContext.Provider>;
