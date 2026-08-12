@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { RIGS } from "@/lib/rigs";
 import { editImage, streamImage } from "@/lib/stream-image";
 import { formatPace, useGameState, type RunEntry } from "@/lib/game-state";
+import { BootTerminal } from "./BootTerminal";
 
 const CARD_W = 1080;
 const CARD_H = 1620;
@@ -25,6 +26,8 @@ export function PhotoCards({ run }: { run: RunEntry }) {
   const [art, setArt] = useState<string | null>(null);
   const [isFinal, setIsFinal] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [booting, setBooting] = useState(false);
+  const [bootDone, setBootDone] = useState(false);
   const [cardUrl, setCardUrl] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -145,6 +148,8 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       return;
     }
     setBusy(true);
+    setBooting(true);
+    setBootDone(false);
     setArt(null);
     setIsFinal(false);
     setCardUrl(null);
@@ -170,6 +175,10 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       setBusy(false);
     }
   }, [locked, rig, selfie, state.settings.avatarConsent]);
+
+  useEffect(() => {
+    if (bootDone && !busy) setBooting(false);
+  }, [bootDone, busy]);
 
   useEffect(() => {
     if (art && isFinal) void compose(art);
@@ -258,7 +267,19 @@ export function PhotoCards({ run }: { run: RunEntry }) {
             </div>
           )}
         </div>
-        {busy && (
+        {booting && (
+          <BootTerminal
+            muted={!state.settings.audio}
+            lines={[
+              "> CONNECTING STRAVA ENGINE...",
+              "> ANALYZING GPS ROUTE & TELEMETRY...",
+              "> SPRITE SYNTHESIS: MATCHING OUTFITS & AVATARS...",
+              `> RENDERING ${rig.name.toUpperCase()} CARD...`,
+            ]}
+            onDone={() => setBootDone(true)}
+          />
+        )}
+        {busy && !booting && (
           <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-background/80 px-4 py-2.5 backdrop-blur">
             <Loader2 className="size-4 animate-spin text-primary" />
             <span className="text-[12px] text-foreground">Rendering 8-bit artwork…</span>
