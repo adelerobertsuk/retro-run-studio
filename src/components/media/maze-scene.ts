@@ -4,7 +4,7 @@
  * pixel muncher eats its way around while ghosts chase.
  */
 
-export const CELL = 30;
+export const CELL = 28;
 export const COLS = 9;
 export const ROWS = 16;
 
@@ -41,7 +41,7 @@ export function drawMaze(
   ctx.fillRect(0, 0, w, h);
 
   const ox = (w - COLS * CELL) / 2;
-  const oy = (h - ROWS * CELL) / 2;
+  const oy = (h - ROWS * CELL) / 2 + 24;
 
   // maze walls: outer border + block pillars between route lanes
   ctx.strokeStyle = "#1d4ed8";
