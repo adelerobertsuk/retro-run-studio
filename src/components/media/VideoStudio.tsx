@@ -12,6 +12,8 @@ import {
 } from "@/components/app/pixel-scene";
 import { formatPace, type RunEntry } from "@/lib/game-state";
 import { drawMaze } from "./maze-scene";
+import { BootTerminal } from "./BootTerminal";
+import { useGameState } from "@/lib/game-state";
 
 type Mode = "maze" | "beat";
 
@@ -62,10 +64,13 @@ export function VideoStudio({ run, totalMiles }: Props) {
   const [mode, setMode] = useState<Mode>("maze");
   const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
   const [photoName, setPhotoName] = useState<string | null>(null);
+  const [booting, setBooting] = useState(true);
+  const { state } = useGameState();
   const tickRef = useRef(0);
 
   const onUpload = useCallback(async (file: File) => {
     setPhotoName(file.name);
+    setBooting(true);
     try {
       setPalette(await paletteFromImage(file));
     } catch {
@@ -199,7 +204,13 @@ export function VideoStudio({ run, totalMiles }: Props) {
           <button
             key={m.id}
             type="button"
-            onClick={() => setMode(m.id)}
+            onClick={() => {
+              if (m.id !== mode) {
+                setMode(m.id);
+                tickRef.current = 0;
+                setBooting(true);
+              }
+            }}
             className={`rounded-xl px-2 py-2 text-left transition-colors ${
               mode === m.id
                 ? "bg-elevated text-foreground shadow-[var(--shadow-card)]"
@@ -223,9 +234,36 @@ export function VideoStudio({ run, totalMiles }: Props) {
         <span className="absolute right-3 top-3 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-foreground backdrop-blur">
           9:16
         </span>
+        {booting && (
+          <BootTerminal
+            muted={!state.settings.audio}
+            lines={[
+              "> CONNECTING STRAVA ENGINE...",
+              "> ANALYZING GPS ROUTE & TELEMETRY...",
+              "> SPRITE SYNTHESIS: MATCHING OUTFITS & AVATARS...",
+              mode === "maze"
+                ? "> RENDERING PAC-MAN MAZE REEL..."
+                : "> RENDERING 8-BIT ARCADE REEL...",
+            ]}
+            onDone={() => setBooting(false)}
+          />
+        )}
       </div>
 
       <div className="flex gap-2.5">
+        <button
+          type="button"
+          onClick={() => {
+            tickRef.current = 0;
+            setPlaying(true);
+            setBooting(true);
+          }}
+          disabled={booting}
+          className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[14px] font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
+        >
+          <Sparkles className="size-4" />
+          {booting ? "Rendering…" : "Generate reel"}
+        </button>
         <button
           type="button"
           onClick={() => setPlaying((p) => !p)}
