@@ -7,6 +7,7 @@ import { formatPace, useGameState, type RunEntry } from "@/lib/game-state";
 import { playSfx } from "@/lib/audio";
 import { BootTerminal } from "./BootTerminal";
 import { drawQrBadge, drawStamp, pixelateInto } from "@/lib/card-art";
+import { drawWatermark } from "@/lib/watermark";
 
 const CARD_W = 1080;
 const CARD_H = 1620;
@@ -81,6 +82,38 @@ export function PhotoCards({ run }: { run: RunEntry }) {
         ctx.fillRect(artBox.x, y, artBox.w, 2);
       }
       ctx.restore();
+
+      // Rig-specific analog treatment, all rendered locally (no API cost).
+      if (rig.id === "rig-vhs") {
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(artBox.x, artBox.y, artBox.w, artBox.h, 28);
+        ctx.clip();
+        ctx.globalCompositeOperation = "screen";
+        ctx.globalAlpha = 0.22;
+        ctx.drawImage(canvas, artBox.x + 6, artBox.y, artBox.w, artBox.h);
+        ctx.fillStyle = "#ff00c8";
+        ctx.globalAlpha = 0.12;
+        ctx.fillRect(artBox.x, artBox.y, artBox.w, artBox.h);
+        ctx.fillStyle = "#00e5ff";
+        ctx.globalAlpha = 0.1;
+        ctx.fillRect(artBox.x, artBox.y, artBox.w, artBox.h);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = "#0b1020";
+        for (let y = artBox.y; y < artBox.y + artBox.h; y += 5) {
+          ctx.fillRect(artBox.x, y, artBox.w, 1);
+        }
+        ctx.restore();
+        ctx.fillStyle = "#f87171";
+        ctx.beginPath();
+        ctx.arc(artBox.x + 44, artBox.y + 46, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "700 28px ui-monospace, Menlo, monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("REC", artBox.x + 66, artBox.y + 56);
+      }
       ctx.strokeStyle = "rgba(16,185,129,0.55)";
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -169,9 +202,11 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       ctx.font = "500 24px ui-sans-serif, system-ui, sans-serif";
       ctx.fillText("8-BIT RUNNER · POWERED BY STRAVA", 66, CARD_H - 60);
 
+      drawWatermark(ctx, 60, CARD_H - 220, 1);
+
       setCardUrl(canvas.toDataURL("image/png"));
     },
-    [rig.name, run, state.adventurerNotes],
+    [rig.id, rig.name, run, state.adventurerNotes],
   );
 
   const generate = useCallback(async () => {
@@ -179,6 +214,16 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       toast.error(`${rig.name} is locked`, {
         description: `Unlock it in the Arcade for ${rig.tokens} tokens.`,
       });
+      return;
+    }
+    // Retro Trading Card and VHS-84 render fully client-side from the selfie.
+    const localOnly = rig.id === "rig-rpg" || rig.id === "rig-vhs";
+    if (localOnly && selfieUrl) {
+      setBooting(true);
+      setBootDone(false);
+      setArt(null);
+      setIsFinal(false);
+      await compose(selfieUrl);
       return;
     }
     if (!state.settings.avatarConsent) {
