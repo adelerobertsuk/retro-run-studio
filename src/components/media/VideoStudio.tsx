@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Download, Film, Pause, Play, RotateCcw, Share2, Sparkles, Upload } from "lucide-react";
+import { Download, Pause, Play, RotateCcw, Share2, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_PALETTE,
