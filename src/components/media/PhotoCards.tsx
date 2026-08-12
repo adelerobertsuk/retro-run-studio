@@ -104,7 +104,7 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       );
 
       // QR badge
-      drawQrBadge(ctx, CARD_W - 210, 1130, 120, `${run.id ?? run.title}-${run.miles}`);
+      drawQrBadge(ctx, CARD_W - 210, 1130, 120, `${run.title}-${run.miles}`);
       ctx.fillStyle = "#64748b";
       ctx.font = "500 20px ui-monospace, Menlo, monospace";
       ctx.textAlign = "center";
