@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Flame } from "lucide-react";
+import { Check, ChevronRight, Flame } from "lucide-react";
+import { useState } from "react";
+import { RunDetailDrawer } from "@/components/quest/RunDetailDrawer";
 import {
   currentStreak,
   formatPace,
@@ -7,6 +9,7 @@ import {
   useGameState,
   weeklyMiles,
   WEEKLY_GOAL_MILES,
+  type RunEntry,
 } from "@/lib/game-state";
 
 export const Route = createFileRoute("/quest")({
@@ -32,6 +35,7 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 function QuestPage() {
   const { state } = useGameState();
+  const [selected, setSelected] = useState<RunEntry | null>(null);
   const runDates = new Set(state.runs.map((r) => r.date));
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -116,11 +120,13 @@ function QuestPage() {
         <h2 className="mb-3 text-[15px] font-semibold text-foreground">Recent runs</h2>
         <ul className="space-y-2.5">
           {state.runs.slice(0, 5).map((run) => (
-            <li
-              key={run.date}
-              className="flex items-center justify-between rounded-2xl border border-border bg-surface p-3.5"
-            >
-              <div>
+            <li key={run.date}>
+              <button
+                type="button"
+                onClick={() => setSelected(run)}
+                className="flex w-full items-center justify-between rounded-2xl border border-border bg-surface p-3.5 text-left transition-colors hover:bg-elevated"
+              >
+                <div>
                 <p className="text-[14px] font-medium text-foreground">{run.title}</p>
                 <p className="text-[12px] text-muted-foreground">
                   {new Date(`${run.date}T12:00:00`).toLocaleDateString("en-US", {
@@ -130,14 +136,18 @@ function QuestPage() {
                   })}{" "}
                   · {formatPace(run.paceSeconds)} /mi
                 </p>
-              </div>
-              <span className="text-[14px] font-semibold tabular-nums text-primary">
-                {run.miles.toFixed(2)} mi
-              </span>
+                </div>
+                <span className="flex items-center gap-1 text-[14px] font-semibold tabular-nums text-primary">
+                  {run.miles.toFixed(2)} mi
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </span>
+              </button>
             </li>
           ))}
         </ul>
       </section>
+
+      <RunDetailDrawer run={selected} onOpenChange={(open) => !open && setSelected(null)} />
     </div>
   );
 }
