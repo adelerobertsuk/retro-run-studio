@@ -57,7 +57,7 @@ function MediaPage() {
         <p className="mt-0.5 text-[12px] text-muted-foreground">
           {tab === "video"
             ? `Built from ${run.title} · ${run.miles.toFixed(2)} mi`
-            : "HD camera rigs that transform your selfie into 8-bit character art."}
+            : "80s camera filters that transform your selfie into 8-bit character art."}
         </p>
       </div>
 
