@@ -17,13 +17,13 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "8-Bit Runner — Turn Your Runs Into Arcade Legends" },
+      { title: "8-Bit Runner" },
       {
         name: "description",
         content:
           "Track runs and daily habits, charge your Life Force, and earn Arcade Tokens in a retro 8-bit fitness companion.",
       },
-      { property: "og:title", content: "8-Bit Runner — Turn Your Runs Into Arcade Legends" },
+      { property: "og:title", content: "8-Bit Runner" },
       {
         property: "og:description",
         content:

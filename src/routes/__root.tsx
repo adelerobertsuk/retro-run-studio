@@ -83,17 +83,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "8-Bit Runner" },
       {
         name: "description",
-        content: "Turn your runs into 8-bit arcade videos, posters and trading cards.",
+        content: "Track runs and daily habits, charge your Life Force, and earn Arcade Tokens in a retro 8-bit fitness companion.",
       },
       { name: "author", content: "8-Bit Runner" },
       { property: "og:title", content: "8-Bit Runner" },
       {
         property: "og:description",
-        content: "Turn your runs into 8-bit arcade videos, posters and trading cards.",
+        content: "Track runs and daily habits, charge your Life Force, and earn Arcade Tokens in a retro 8-bit fitness companion.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "8-Bit Runner" },
+      { name: "twitter:description", content: "Track runs and daily habits, charge your Life Force, and earn Arcade Tokens in a retro 8-bit fitness companion." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ce71356875b69615b9dab5ac04370236/id-preview-5fdb6110--5e4053d4-68b8-4fa8-a227-31c7752b8a2a.lovable.app-1786530528221.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ce71356875b69615b9dab5ac04370236/id-preview-5fdb6110--5e4053d4-68b8-4fa8-a227-31c7752b8a2a.lovable.app-1786530528221.png" },
     ],
     links: [
       {
