@@ -25,6 +25,8 @@ const MODES: { id: Mode; label: string; hint: string }[] = [
 const W = 270; // 9:16 logical canvas
 const H = 480;
 const SCALE = 4;
+const TIME_SCALE = 0.4; // run everything 60% slower for a calm, stable preview
+
 
 /** Pull a rough outfit palette out of the uploaded photo. */
 async function paletteFromImage(file: File): Promise<Palette> {
