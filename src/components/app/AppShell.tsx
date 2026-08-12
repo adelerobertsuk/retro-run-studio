@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Gamepad2, Home, Sparkles, Swords, User } from "lucide-react";
 import type { ReactNode } from "react";
+import { playSfx } from "@/lib/audio";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
@@ -42,6 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   to={to}
                   activeOptions={{ exact: to === "/" }}
+                  onClick={() => playSfx("tab")}
                   className="group flex flex-col items-center gap-1 rounded-xl py-1.5 text-muted-foreground transition-colors data-[status=active]:text-primary"
                 >
                   <Icon className="size-[22px]" strokeWidth={2} />

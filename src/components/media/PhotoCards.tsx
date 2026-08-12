@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { RIGS } from "@/lib/rigs";
 import { editImage, streamImage } from "@/lib/stream-image";
 import { formatPace, useGameState, type RunEntry } from "@/lib/game-state";
+import { playSfx } from "@/lib/audio";
 import { BootTerminal } from "./BootTerminal";
 import { drawQrBadge, drawStamp, pixelateInto } from "@/lib/card-art";
 
@@ -234,7 +235,10 @@ export function PhotoCards({ run }: { run: RunEntry }) {
   }, [locked, rig, selfie, selfieUrl, compose, state.settings.avatarConsent]);
 
   useEffect(() => {
-    if (bootDone && !busy) setBooting(false);
+    if (bootDone && !busy) {
+      setBooting(false);
+      playSfx("complete");
+    }
   }, [bootDone, busy]);
 
   useEffect(() => {
@@ -297,10 +301,42 @@ export function PhotoCards({ run }: { run: RunEntry }) {
         })}
       </div>
 
+      <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-border bg-surface p-3.5 transition-colors hover:bg-elevated">
+        {selfieUrl ? (
+          <img
+            src={selfieUrl}
+            alt="Your uploaded selfie"
+            className="size-12 shrink-0 rounded-xl object-cover"
+          />
+        ) : (
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-elevated text-muted-foreground">
+            <Upload className="size-5" />
+          </span>
+        )}
+        <span className="min-w-0">
+          <span className="block text-[14px] font-medium text-foreground">
+            {selfie ? "Change selfie" : "Upload selfie"}
+          </span>
+          <span className="block truncate text-[12px] text-muted-foreground">
+            {selfie ? selfie.name : "JPG or PNG — pixel-filtered into your card art."}
+          </span>
+        </span>
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={(e) => setSelfie(e.target.files?.[0] ?? null)}
+        />
+      </label>
+
       <div className="relative overflow-hidden rounded-3xl border border-border bg-elevated">
         <div className="aspect-[2/3] w-full">
           {cardUrl ? (
-            <img src={cardUrl} alt={`${rig.name} card for ${run.title}`} className="size-full object-cover" />
+            <img
+              src={cardUrl}
+              alt={`${rig.name} card for ${run.title}`}
+              className="pixelated size-full object-contain"
+            />
           ) : art ? (
             <img
               src={art}
@@ -309,17 +345,9 @@ export function PhotoCards({ run }: { run: RunEntry }) {
             />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-2 p-6 text-center">
-              {selfieUrl ? (
-                <img
-                  src={selfieUrl}
-                  alt="Your uploaded selfie"
-                  className="size-24 rounded-2xl object-cover"
-                />
-              ) : (
-                <Sparkles className="size-7 text-muted-foreground" />
-              )}
+              <Sparkles className="size-7 text-muted-foreground" />
               <p className="text-[13px] text-muted-foreground">
-                Upload a selfie, pick a rig, then render your card.
+                Pick a style above, then tap Render Card.
               </p>
             </div>
           )}
@@ -344,27 +372,18 @@ export function PhotoCards({ run }: { run: RunEntry }) {
         )}
       </div>
 
-      <div className="flex gap-2.5">
-        <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3 text-[14px] font-medium text-foreground transition-colors hover:bg-elevated">
-          <Upload className="size-4" />
-          {selfie ? "Change selfie" : "Upload selfie"}
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(e) => setSelfie(e.target.files?.[0] ?? null)}
-          />
-        </label>
-        <button
-          type="button"
-          onClick={() => void generate()}
-          disabled={busy}
-          className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[14px] font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
-        >
-          {locked ? <Lock className="size-4" /> : <Zap className="size-4" />}
-          {locked ? `${rig.tokens} tokens` : "Render card"}
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => {
+          playSfx("tap");
+          void generate();
+        }}
+        disabled={busy}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-[15px] font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
+      >
+        {locked ? <Lock className="size-4" /> : <Zap className="size-4" />}
+        {locked ? `Unlock for ${rig.tokens} tokens` : "Render Card"}
+      </button>
 
       <div className="rounded-2xl border border-border bg-surface p-4">
         <label

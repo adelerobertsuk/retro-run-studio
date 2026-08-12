@@ -13,6 +13,7 @@ import {
   weeklyPayout,
   WEEKLY_GOAL_MILES,
 } from "@/lib/game-state";
+import { playSfx } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,7 +88,7 @@ function HomePage() {
           />
         </div>
         <p className="mt-2 text-[12px] text-muted-foreground">
-          {miles.toFixed(1)} of {WEEKLY_GOAL_MILES} miles synced this week plus your daily check-ins.
+          {miles.toFixed(1)} of {WEEKLY_GOAL_MILES} miles synced this week plus your auto-synced metrics.
         </p>
         <p className="mt-1 text-[12px] text-primary">
           Weekly payout boosted to {payout} tokens at this Life Force.
@@ -95,7 +96,11 @@ function HomePage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-[15px] font-semibold text-foreground">Daily check-in</h2>
+        <h2 className="text-[15px] font-semibold text-foreground">Auto-Syncing Metrics</h2>
+        <p className="mb-3 mt-0.5 text-[12px] text-muted-foreground">
+          Sleep, hydration and recovery sync passively from your connected health data and grant
+          Arcade Tokens. Tap to confirm anything that hasn't landed yet.
+        </p>
         <div className="space-y-2.5">
           {HABITS.map((habit) => {
             const Icon = HABIT_ICONS[habit.id];
@@ -104,7 +109,10 @@ function HomePage() {
               <button
                 key={habit.id}
                 type="button"
-                onClick={() => logHabit(habit.id)}
+                onClick={() => {
+                  playSfx("tap");
+                  logHabit(habit.id);
+                }}
                 disabled={complete}
                 className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3.5 text-left transition-colors enabled:hover:bg-elevated disabled:opacity-70"
               >
