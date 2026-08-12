@@ -246,6 +246,8 @@ function exportOverlay(run: RunEntry) {
     H - 64,
   );
 
+  drawWatermark(ctx, 60, H - 240, 1);
+
   const a = document.createElement("a");
   a.href = canvas.toDataURL("image/png");
   a.download = `8bit-route-${run.date}.png`;
