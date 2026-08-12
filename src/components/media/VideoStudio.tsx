@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play, Upload } from "lucide-react";
+import { Pause, Play, Sparkles, Upload } from "lucide-react";
 import {
   DEFAULT_PALETTE,
   drawBoss,
