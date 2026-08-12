@@ -10,33 +10,115 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArcadeRouteImport } from './routes/arcade'
+import { Route as MediaRouteImport } from './routes/media'
+import { Route as QuestRouteImport } from './routes/quest'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ApiEditImageRouteImport } from './routes/api/edit-image'
+import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArcadeRoute = ArcadeRouteImport.update({
+  id: '/arcade',
+  path: '/arcade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MediaRoute = MediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuestRoute = QuestRouteImport.update({
+  id: '/quest',
+  path: '/quest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEditImageRoute = ApiEditImageRouteImport.update({
+  id: '/api/edit-image',
+  path: '/api/edit-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
+  id: '/api/generate-image',
+  path: '/api/generate-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
+  '/media': typeof MediaRoute
+  '/quest': typeof QuestRoute
+  '/settings': typeof SettingsRoute
+  '/api/edit-image': typeof ApiEditImageRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
+  '/media': typeof MediaRoute
+  '/quest': typeof QuestRoute
+  '/settings': typeof SettingsRoute
+  '/api/edit-image': typeof ApiEditImageRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arcade': typeof ArcadeRoute
+  '/media': typeof MediaRoute
+  '/quest': typeof QuestRoute
+  '/settings': typeof SettingsRoute
+  '/api/edit-image': typeof ApiEditImageRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/arcade'
+    | '/media'
+    | '/quest'
+    | '/settings'
+    | '/api/edit-image'
+    | '/api/generate-image'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/arcade'
+    | '/media'
+    | '/quest'
+    | '/settings'
+    | '/api/edit-image'
+    | '/api/generate-image'
+  id:
+    | '__root__'
+    | '/'
+    | '/arcade'
+    | '/media'
+    | '/quest'
+    | '/settings'
+    | '/api/edit-image'
+    | '/api/generate-image'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArcadeRoute: typeof ArcadeRoute
+  MediaRoute: typeof MediaRoute
+  QuestRoute: typeof QuestRoute
+  SettingsRoute: typeof SettingsRoute
+  ApiEditImageRoute: typeof ApiEditImageRoute
+  ApiGenerateImageRoute: typeof ApiGenerateImageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +130,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/arcade': {
+      id: '/arcade'
+      path: '/arcade'
+      fullPath: '/arcade'
+      preLoaderRoute: typeof ArcadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/media': {
+      id: '/media'
+      path: '/media'
+      fullPath: '/media'
+      preLoaderRoute: typeof MediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quest': {
+      id: '/quest'
+      path: '/quest'
+      fullPath: '/quest'
+      preLoaderRoute: typeof QuestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/edit-image': {
+      id: '/api/edit-image'
+      path: '/api/edit-image'
+      fullPath: '/api/edit-image'
+      preLoaderRoute: typeof ApiEditImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generate-image': {
+      id: '/api/generate-image'
+      path: '/api/generate-image'
+      fullPath: '/api/generate-image'
+      preLoaderRoute: typeof ApiGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArcadeRoute: ArcadeRoute,
+  MediaRoute: MediaRoute,
+  QuestRoute: QuestRoute,
+  SettingsRoute: SettingsRoute,
+  ApiEditImageRoute: ApiEditImageRoute,
+  ApiGenerateImageRoute: ApiGenerateImageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
