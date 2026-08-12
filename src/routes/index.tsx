@@ -40,9 +40,8 @@ export const Route = createFileRoute("/")({
 const HABIT_ICONS = { steps: Footprints, sleep: Moon, recovery: HeartPulse } as const;
 
 function HomePage() {
-  const { state, logHabit } = useGameState();
+  const { state } = useGameState();
   const [citiesOpen, setCitiesOpen] = useState(false);
-  const done = state.habitLog[todayKey()] ?? [];
   const streak = currentStreak(state.runs);
   const miles = weeklyMiles(state.runs);
   const lf = lifeForce(state);
