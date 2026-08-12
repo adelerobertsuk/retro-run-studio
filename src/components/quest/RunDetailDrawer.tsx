@@ -333,31 +333,38 @@ export function RunDetailDrawer({
               ))}
             </div>
 
-            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">Route</h3>
-            <RouteMap run={run} />
-
-            <button
-              type="button"
-              onClick={() => exportOverlay(run)}
-              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-primary/15"
-            >
-              <Download className="size-4" />
-              Export neon route overlay (PNG)
-            </button>
-
-            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
-              Neon route reveal video
-            </h3>
-            <RouteRevealStudio run={run} />
-
-            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
-              8-bit RPG hero card
-            </h3>
-            <div className="flex justify-center rounded-2xl border border-border bg-surface p-4">
-              <div className="w-[190px]">
-                <HeroCardPreview run={run} />
-              </div>
+            <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-1">
+              {(["photo", "video"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    playSfx("tap");
+                    setMode(m);
+                  }}
+                  className={`rounded-xl py-2.5 text-[13px] font-semibold capitalize transition-colors ${
+                    mode === m
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
+            <p className="mt-2 text-[12px] text-muted-foreground">
+              {mode === "photo"
+                ? "Instant '80s analog grade plus your 8-bit RPG hero card."
+                : "Animated neon route reveal with stats and the 8-Bit Runner badge."}
+            </p>
+
+            {mode === "photo" ? (
+              <PhotoExport run={run} />
+            ) : (
+              <div className="mt-4">
+                <RouteRevealStudio run={run} />
+              </div>
+            )}
           </div>
         ) : null}
       </DrawerContent>
