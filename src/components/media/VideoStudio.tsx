@@ -83,7 +83,7 @@ export function VideoStudio({ run, totalMiles }: Props) {
       if (playing) tickRef.current += 1;
       const t = tickRef.current;
       const loop = t % 900; // ~15s at 60fps
-      const groundY = H - 110;
+      const groundY = H - 74;
 
       drawSky(ctx, W, H, true);
       drawSkyline(ctx, W, groundY, t, 0);
@@ -92,12 +92,12 @@ export function VideoStudio({ run, totalMiles }: Props) {
 
       if (loop < 480) {
         // Act 1 — side-scrolling run
-        drawRunner(ctx, 60, groundY, 4, Math.floor(t / 5), palette);
+        drawRunner(ctx, 56, groundY, 5, Math.floor(t / 5), palette);
       } else if (loop < 720) {
         // Act 2 — boss encounter
         const approach = Math.max(0, 200 - (loop - 480));
-        drawBoss(ctx, 150 + approach, groundY, 4, Math.floor(t / 6));
-        drawRunner(ctx, 60, groundY, 4, Math.floor(t / 4), palette);
+        drawBoss(ctx, 150 + approach, groundY, 5, Math.floor(t / 6));
+        drawRunner(ctx, 56, groundY, 5, Math.floor(t / 4), palette);
         ctx.fillStyle = "#f43f5e";
         ctx.font = pixelFont(11);
         ctx.textAlign = "center";

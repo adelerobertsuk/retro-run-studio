@@ -33,7 +33,7 @@ export function HeroViewport({ label }: { label: string }) {
       drawSkyline(ctx, W, groundY, tick, 0);
       drawSkyline(ctx, W, groundY, tick, 1);
       drawGround(ctx, W, H, groundY, tick);
-      drawRunner(ctx, 44, groundY, 3, Math.floor(tick / 5), DEFAULT_PALETTE);
+      drawRunner(ctx, 40, groundY, 4, Math.floor(tick / 5), DEFAULT_PALETTE);
       raf = requestAnimationFrame(render);
     };
     render();

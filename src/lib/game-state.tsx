@@ -62,7 +62,7 @@ function seedRuns(): RunEntry[] {
     d.setDate(d.getDate() - offset);
     out.push({
       date: todayKey(d),
-      miles: Number((2.4 + ((i * 7) % 9) * 0.42).toFixed(2)),
+      miles: Number((1.6 + ((i * 7) % 9) * 0.22).toFixed(2)),
       paceSeconds: 420 + ((i * 13) % 90),
       topSpeed: Number((9.2 + ((i * 5) % 7) * 0.35).toFixed(1)),
       title: titles[i % titles.length]!,
