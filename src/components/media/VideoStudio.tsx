@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play, Sparkles, Upload } from "lucide-react";
+import { Download, Film, Pause, Play, RotateCcw, Share2, Sparkles, Upload } from "lucide-react";
+import { toast } from "sonner";
 import {
   DEFAULT_PALETTE,
   drawBoss,
@@ -67,6 +68,8 @@ export function VideoStudio({ run, totalMiles }: Props) {
   const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
   const [photoName, setPhotoName] = useState<string | null>(null);
   const [booting, setBooting] = useState(false);
+  const [generated, setGenerated] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const { state } = useGameState();
   const tickRef = useRef(0);
 
@@ -93,6 +96,27 @@ export function VideoStudio({ run, totalMiles }: Props) {
     let raf = 0;
     const pixelFont = (size: number) =>
       `${size}px ui-monospace, "SFMono-Regular", Menlo, monospace`;
+
+    if (!generated) {
+      // Static placeholder until the user generates a reel
+      ctx.fillStyle = "#05060f";
+      ctx.fillRect(0, 0, W, H);
+      drawSky(ctx, W, H, true);
+      drawSkyline(ctx, W, H - 74, 0, 0);
+      drawSkyline(ctx, W, H - 74, 0, 1);
+      drawGround(ctx, W, H, H - 74, 0);
+      drawRunner(ctx, 56, H - 74, 5, 0, palette);
+      ctx.fillStyle = "rgba(5,6,15,0.7)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#10b981";
+      ctx.font = pixelFont(13);
+      ctx.fillText("READY TO RENDER", W / 2, H / 2 - 8);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = pixelFont(10);
+      ctx.fillText("TAP GENERATE VIDEO", W / 2, H / 2 + 14);
+      return;
+    }
 
     const drawHud = () => {
       // Strava-style HUD overlay
@@ -197,7 +221,66 @@ export function VideoStudio({ run, totalMiles }: Props) {
     };
     render();
     return () => cancelAnimationFrame(raf);
-  }, [playing, palette, run, totalMiles, mode]);
+  }, [playing, palette, run, totalMiles, mode, generated]);
+
+  const recordClip = useCallback(async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    if (typeof MediaRecorder === "undefined" || !canvas.captureStream) return null;
+    const stream = canvas.captureStream(30);
+    const rec = new MediaRecorder(stream, { mimeType: "video/webm" });
+    const chunks: BlobPart[] = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    const done = new Promise<Blob>((resolve) => {
+      rec.onstop = () => resolve(new Blob(chunks, { type: "video/webm" }));
+    });
+    rec.start();
+    await new Promise((r) => setTimeout(r, 4000));
+    rec.stop();
+    return done;
+  }, []);
+
+  const saveClip = async () => {
+    setExporting(true);
+    try {
+      const blob = await recordClip();
+      if (!blob) throw new Error("unsupported");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `8bit-runner-${mode}-reel.webm`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast.success("Saved to your camera roll");
+    } catch {
+      toast.error("Video export isn't supported on this device");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const shareClip = async () => {
+    setExporting(true);
+    try {
+      const blob = await recordClip();
+      if (!blob) throw new Error("unsupported");
+      const file = new File([blob], "8bit-runner-reel.webm", { type: "video/webm" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "8-Bit Runner",
+          text: `${run.miles.toFixed(2)} mi at ${formatPace(run.paceSeconds)}/mi`,
+        });
+      } else {
+        toast.info("Sharing isn't available here — saving instead");
+        await saveClip();
+      }
+    } catch {
+      /* dismissed */
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -210,6 +293,7 @@ export function VideoStudio({ run, totalMiles }: Props) {
               if (m.id !== mode) {
                 setMode(m.id);
                 tickRef.current = 0;
+                setGenerated(false);
               }
             }}
             className={`rounded-xl px-2 py-2 text-left transition-colors ${
@@ -258,16 +342,18 @@ export function VideoStudio({ run, totalMiles }: Props) {
             tickRef.current = 0;
             setPlaying(true);
             setBooting(true);
+            setGenerated(true);
           }}
           disabled={booting}
           className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[14px] font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
         >
           <Sparkles className="size-4" />
-          {booting ? "Rendering…" : "Generate reel"}
+          {booting ? "Rendering…" : generated ? "Regenerate" : "Generate video"}
         </button>
         <button
           type="button"
           onClick={() => setPlaying((p) => !p)}
+          disabled={!generated || booting}
           className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3 text-[14px] font-medium text-foreground transition-colors hover:bg-elevated"
         >
           {playing ? <Pause className="size-4" /> : <Play className="size-4" />}
@@ -287,6 +373,42 @@ export function VideoStudio({ run, totalMiles }: Props) {
           />
         </label>
       </div>
+
+      {generated && !booting && (
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={saveClip}
+            disabled={exporting}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-[15px] font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
+          >
+            <Download className="size-4" />
+            {exporting ? "Capturing reel…" : "Save to Camera Roll"}
+          </button>
+          <button
+            type="button"
+            onClick={shareClip}
+            disabled={exporting}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3.5 text-[15px] font-semibold text-foreground transition-colors hover:bg-primary/15 disabled:opacity-60"
+          >
+            <Share2 className="size-4" />
+            Share to Instagram / TikTok / Strava
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              tickRef.current = 0;
+              setPlaying(true);
+              setBooting(true);
+            }}
+            disabled={exporting}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3 text-[14px] font-medium text-muted-foreground transition-colors hover:bg-elevated disabled:opacity-60"
+          >
+            <RotateCcw className="size-4" />
+            Retry / switch style
+          </button>
+        </div>
+      )}
       <p className="text-[12px] text-muted-foreground">
         {photoName
           ? `Avatar outfit matched from ${photoName}.`
