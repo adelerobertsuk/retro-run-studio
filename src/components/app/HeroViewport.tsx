@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronRight, MapPin } from "lucide-react";
 import { DEFAULT_PALETTE, drawGround, drawRunner, drawSky, drawSkyline } from "./pixel-scene";
 import { cityLevel, drawLandmark, getCity } from "@/lib/cities";
+import { playSfx } from "@/lib/audio";
 
 const W = 320;
 const H = 160;
@@ -68,6 +69,7 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
 
   const jump = useCallback(() => {
     if (jumping) return;
+    playSfx("jump");
     setJumping(true);
     setJumps((j) => j + 1);
     window.setTimeout(() => setJumping(false), JUMP_MS);

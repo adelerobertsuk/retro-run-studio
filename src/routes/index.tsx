@@ -87,7 +87,7 @@ function HomePage() {
           />
         </div>
         <p className="mt-2 text-[12px] text-muted-foreground">
-          {miles.toFixed(1)} of {WEEKLY_GOAL_MILES} miles synced this week plus your daily check-ins.
+          {miles.toFixed(1)} of {WEEKLY_GOAL_MILES} miles synced this week plus your auto-synced metrics.
         </p>
         <p className="mt-1 text-[12px] text-primary">
           Weekly payout boosted to {payout} tokens at this Life Force.
@@ -95,7 +95,7 @@ function HomePage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-[15px] font-semibold text-foreground">Daily check-in</h2>
+        <h2 className="mb-3 text-[15px] font-semibold text-foreground">Auto-Syncing Metrics</h2>
         <div className="space-y-2.5">
           {HABITS.map((habit) => {
             const Icon = HABIT_ICONS[habit.id];
