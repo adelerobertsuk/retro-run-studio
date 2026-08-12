@@ -105,11 +105,6 @@ export function PhotoCards({ run }: { run: RunEntry }) {
 
       // QR badge
       drawQrBadge(ctx, CARD_W - 210, 1130, 120, `${run.title}-${run.miles}`);
-      ctx.fillStyle = "#64748b";
-      ctx.font = "500 20px ui-monospace, Menlo, monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("SCAN", CARD_W - 150, 1290);
-      ctx.textAlign = "left";
 
       ctx.strokeStyle = "#10b981";
       ctx.lineWidth = 6;
@@ -167,7 +162,7 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       }
       if (y <= 1500) ctx.fillText(line, 90, y);
 
-      drawStamp(ctx, CARD_W - 160, CARD_H - 170, 78, "VERIFIED", "STRAVA");
+      drawStamp(ctx, CARD_W - 150, CARD_H - 110, 66, "VERIFIED", "STRAVA");
 
       ctx.fillStyle = "#64748b";
       ctx.font = "500 24px ui-sans-serif, system-ui, sans-serif";
