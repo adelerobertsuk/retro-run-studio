@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { setAudioMuted } from "@/lib/audio";
 
 export type HabitId = "hydrate" | "sleep" | "recovery";
 
@@ -27,6 +28,11 @@ export type GameState = {
   adventurerNotes: string;
   activeCity: string;
   unlockedCities: string[];
+  profile: {
+    name: string;
+    autoSync: boolean;
+    homeCity: string;
+  };
   settings: {
     notifications: boolean;
     stravaSync: boolean;
@@ -95,6 +101,11 @@ function createInitialState(): GameState {
     adventurerNotes: "Chased the sunset through the east side. Boss defeated at mile 4.",
     activeCity: "london",
     unlockedCities: ["london"],
+    profile: {
+      name: "Adele Roberts",
+      autoSync: true,
+      homeCity: "London, UK",
+    },
     settings: {
       notifications: true,
       stravaSync: true,
@@ -115,6 +126,8 @@ type Ctx = {
   setActiveCity: (id: string) => void;
   unlockCity: (id: string, cost: number) => boolean;
   toggleSetting: (key: keyof GameState["settings"]) => void;
+  addRun: (run: RunEntry) => void;
+  updateProfile: (patch: Partial<GameState["profile"]>) => void;
 };
 
 const GameStateContext = createContext<Ctx | null>(null);
@@ -132,6 +145,11 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     }
     setHydrated(true);
   }, []);
+
+  // Keep the global chiptune engine in sync with the Settings audio toggle.
+  useEffect(() => {
+    setAudioMuted(!state.settings.audio);
+  }, [state.settings.audio]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -197,6 +215,20 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addRun = useCallback((run: RunEntry) => {
+    setState((prev) => ({
+      ...prev,
+      runs: [run, ...prev.runs.filter((r) => r.date !== run.date)].sort((a, b) =>
+        a.date < b.date ? 1 : -1,
+      ),
+      tokens: prev.tokens + Math.round(run.miles * 10),
+    }));
+  }, []);
+
+  const updateProfile = useCallback((patch: Partial<GameState["profile"]>) => {
+    setState((prev) => ({ ...prev, profile: { ...prev.profile, ...patch } }));
+  }, []);
+
   const value = useMemo(
     () => ({
       state,
@@ -207,8 +239,21 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       setActiveCity,
       unlockCity,
       toggleSetting,
+      addRun,
+      updateProfile,
     }),
-    [state, hydrated, logHabit, spendTokens, setNotes, setActiveCity, unlockCity, toggleSetting],
+    [
+      state,
+      hydrated,
+      logHabit,
+      spendTokens,
+      setNotes,
+      setActiveCity,
+      unlockCity,
+      toggleSetting,
+      addRun,
+      updateProfile,
+    ],
   );
 
   return <GameStateContext.Provider value={value}>{children}</GameStateContext.Provider>;
