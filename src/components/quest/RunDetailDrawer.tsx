@@ -1,6 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { Download, X } from "lucide-react";
+import { toast } from "sonner";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
@@ -14,6 +17,7 @@ import {
   drawSkyline,
 } from "@/components/app/pixel-scene";
 import { formatPace, type RunEntry } from "@/lib/game-state";
+import { playSfx } from "@/lib/audio";
 
 function seedFrom(text: string) {
   let h = 0;
@@ -27,6 +31,22 @@ function seededRandom(seed: number) {
     s = (s * 1103515245 + 12345) % 2147483648;
     return s / 2147483648;
   };
+}
+
+/** Deterministic route polyline for a run, normalised to a W x H box. */
+function routePoints(run: RunEntry, W: number, H: number): [number, number][] {
+  const rnd = seededRandom(seedFrom(run.title + run.date));
+  const points: [number, number][] = [];
+  let x = W * 0.15 + rnd() * W * 0.15;
+  let y = H - H * 0.2;
+  let angle = -Math.PI / 3;
+  for (let i = 0; i < 26; i++) {
+    angle += (rnd() - 0.5) * 1.5;
+    x = Math.max(W * 0.05, Math.min(W * 0.95, x + Math.cos(angle) * (W / 18.75)));
+    y = Math.max(H * 0.1, Math.min(H * 0.9, y + Math.sin(angle) * (H / 10.7)));
+    points.push([x, y]);
+  }
+  return points;
 }
 
 /** Deterministic pixel route map derived from the run title + date. */
@@ -61,19 +81,7 @@ function RouteMap({ run }: { run: RunEntry }) {
       ctx.stroke();
     }
 
-    const rnd = seededRandom(seedFrom(run.title + run.date));
-    const points: [number, number][] = [];
-    let x = 40 + rnd() * 40;
-    let y = H - 30;
-    let angle = -Math.PI / 3;
-    const steps = 26;
-    for (let i = 0; i < steps; i++) {
-      angle += (rnd() - 0.5) * 1.5;
-      x = Math.max(16, Math.min(W - 16, x + Math.cos(angle) * 16));
-      y = Math.max(16, Math.min(H - 16, y + Math.sin(angle) * 14));
-      points.push([x, y]);
-    }
-
+    const points = routePoints(run, W, H);
     ctx.strokeStyle = "#10b981";
     ctx.lineWidth = 3;
     ctx.lineJoin = "round";
@@ -93,7 +101,7 @@ function RouteMap({ run }: { run: RunEntry }) {
   return (
     <canvas
       ref={ref}
-      className="block h-auto w-full rounded-2xl border border-border"
+      className="pixelated block h-auto w-full rounded-2xl border border-border"
       style={{ aspectRatio: "2 / 1" }}
       role="img"
       aria-label={`Route map for ${run.title}`}
@@ -120,7 +128,6 @@ function HeroCardPreview({ run }: { run: RunEntry }) {
     ctx.fillStyle = "#0b1020";
     ctx.fillRect(0, 0, W, H);
 
-    // art window
     const artY = 26;
     const artH = 130;
     ctx.save();
@@ -178,6 +185,77 @@ function HeroCardPreview({ run }: { run: RunEntry }) {
   );
 }
 
+/**
+ * Export the route as a transparent low-bit neon overlay PNG, sized for
+ * layering on a Strava or Instagram photo.
+ */
+function exportOverlay(run: RunEntry) {
+  const W = 1080;
+  const H = 1080;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = false;
+
+  const raw = routePoints(run, W, H - 200);
+  const step = 18; // quantise to a chunky low-bit grid
+  const points = raw.map(([x, y]) => [
+    Math.round(x / step) * step,
+    Math.round((y + 60) / step) * step,
+  ]) as [number, number][];
+
+  const stroke = (color: string, width: number, blur: number) => {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineJoin = "miter";
+    ctx.lineCap = "square";
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur;
+    ctx.beginPath();
+    points.forEach(([px, py], i) => (i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)));
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  stroke("rgba(16,185,129,0.45)", 26, 42);
+  stroke("#10b981", 14, 24);
+  stroke("#a7f3d0", 5, 0);
+
+  const [sx, sy] = points[0]!;
+  const [ex, ey] = points[points.length - 1]!;
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(sx - 12, sy - 12, 24, 24);
+  ctx.fillStyle = "#6366f1";
+  ctx.fillRect(ex - 16, ey - 16, 32, 32);
+
+  ctx.font = '34px "Press Start 2P", ui-monospace, Menlo, monospace';
+  ctx.textAlign = "left";
+  ctx.shadowColor = "#10b981";
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = "#a7f3d0";
+  ctx.fillText(run.title.toUpperCase().slice(0, 16), 60, H - 120);
+  ctx.font = '26px "Press Start 2P", ui-monospace, Menlo, monospace';
+  ctx.fillStyle = "#fbbf24";
+  ctx.fillText(
+    `${run.miles.toFixed(2)}MI  ${formatPace(run.paceSeconds)}/MI`,
+    60,
+    H - 64,
+  );
+
+  const a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  a.download = `8bit-route-${run.date}.png`;
+  a.click();
+  playSfx("complete");
+  toast.success("Neon route overlay saved", {
+    description: "Transparent PNG ready for Strava or Instagram.",
+  });
+}
+
 export function RunDetailDrawer({
   run,
   onOpenChange,
@@ -185,22 +263,51 @@ export function RunDetailDrawer({
   run: RunEntry | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  // Safety net: if this screen unmounts (tab switch) while the drawer is open,
+  // clear any body locks vaul may have left behind so the app never freezes.
+  useEffect(
+    () => () => {
+      const body = document.body;
+      body.style.removeProperty("pointer-events");
+      body.style.removeProperty("overflow");
+      body.style.removeProperty("position");
+      body.removeAttribute("data-scroll-locked");
+    },
+    [],
+  );
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) playSfx("tap");
+      onOpenChange(open);
+    },
+    [onOpenChange],
+  );
+
   return (
-    <Drawer open={!!run} onOpenChange={onOpenChange}>
-      <DrawerContent className="border-border bg-background">
+    <Drawer open={!!run} onOpenChange={handleOpenChange} shouldScaleBackground={false}>
+      <DrawerContent className="max-h-[88vh] border-border bg-background">
         {run ? (
           <div className="mx-auto w-full max-w-[430px] overflow-y-auto px-5 pb-8">
-            <DrawerHeader className="px-0">
-              <DrawerTitle className="text-[19px] tracking-tight text-foreground">
-                {run.title}
-              </DrawerTitle>
-              <DrawerDescription className="text-[12px] text-muted-foreground">
-                {new Date(`${run.date}T12:00:00`).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </DrawerDescription>
+            <DrawerHeader className="flex flex-row items-start justify-between gap-3 px-0 text-left">
+              <div>
+                <DrawerTitle className="text-[19px] tracking-tight text-foreground">
+                  {run.title}
+                </DrawerTitle>
+                <DrawerDescription className="text-[12px] text-muted-foreground">
+                  {new Date(`${run.date}T12:00:00`).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </DrawerDescription>
+              </div>
+              <DrawerClose
+                aria-label="Close run details"
+                className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <X className="size-4" />
+              </DrawerClose>
             </DrawerHeader>
 
             <div className="grid grid-cols-3 gap-2">
@@ -225,6 +332,15 @@ export function RunDetailDrawer({
 
             <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">Route</h3>
             <RouteMap run={run} />
+
+            <button
+              type="button"
+              onClick={() => exportOverlay(run)}
+              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-primary/15"
+            >
+              <Download className="size-4" />
+              Export neon route overlay (PNG)
+            </button>
 
             <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
               8-bit RPG hero card
