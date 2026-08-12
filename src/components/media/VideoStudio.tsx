@@ -88,6 +88,26 @@ export function VideoStudio({ run, totalMiles }: Props) {
     const pixelFont = (size: number) =>
       `${size}px ui-monospace, "SFMono-Regular", Menlo, monospace`;
 
+    const drawHud = () => {
+      // Strava-style HUD overlay
+      ctx.textAlign = "left";
+      ctx.fillStyle = "rgba(9,10,26,0.6)";
+      ctx.fillRect(10, 12, W - 20, 34);
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(10.5, 12.5, W - 21, 33);
+      ctx.font = pixelFont(9);
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillText("DIST", 18, 25);
+      ctx.fillText("PACE", 106, 25);
+      ctx.fillText("SPD", 194, 25);
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = pixelFont(12);
+      ctx.fillText(`${run.miles.toFixed(2)}mi`, 18, 39);
+      ctx.fillText(`${formatPace(run.paceSeconds)}`, 106, 39);
+      ctx.fillText(`${run.topSpeed.toFixed(1)}`, 194, 39);
+    };
+
     const render = () => {
       if (playing) tickRef.current += 1;
       const t = tickRef.current;
