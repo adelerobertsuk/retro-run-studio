@@ -9,13 +9,11 @@ import {
   HABITS,
   currentStreak,
   lifeForce,
-  todayKey,
   useGameState,
   weeklyMiles,
   weeklyPayout,
   WEEKLY_GOAL_MILES,
 } from "@/lib/game-state";
-import { playSfx } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
