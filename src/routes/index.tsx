@@ -114,7 +114,7 @@ function HomePage() {
       <section>
         <h2 className="text-[15px] font-semibold text-foreground">Auto-Syncing Metrics</h2>
         <p className="mb-3 mt-0.5 text-[12px] text-muted-foreground">
-          Sleep, hydration and recovery sync passively from your connected health data and grant
+          Steps, sleep and recovery sync passively from your connected health data and grant
           Arcade Tokens. Tap to confirm anything that hasn't landed yet.
         </p>
         <div className="space-y-2.5">
