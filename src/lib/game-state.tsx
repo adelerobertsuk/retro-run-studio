@@ -31,6 +31,7 @@ export type GameState = {
   activeCity: string;
   unlockedCities: string[];
   homeGame: HomeGame;
+  bonusDate: string | null;
   profile: {
     name: string;
     autoSync: boolean;
