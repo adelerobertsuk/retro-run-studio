@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Droplets, Flame, HeartPulse, Moon, Zap } from "lucide-react";
 import { HeroViewport } from "@/components/app/HeroViewport";
+import { CitySelector } from "@/components/app/CitySelector";
 import {
   HABITS,
   currentStreak,
@@ -36,6 +38,7 @@ const HABIT_ICONS = { hydrate: Droplets, sleep: Moon, recovery: HeartPulse } as 
 
 function HomePage() {
   const { state, logHabit } = useGameState();
+  const [citiesOpen, setCitiesOpen] = useState(false);
   const done = state.habitLog[todayKey()] ?? [];
   const streak = currentStreak(state.runs);
   const miles = weeklyMiles(state.runs);
@@ -67,7 +70,8 @@ function HomePage() {
         </div>
       </section>
 
-      <HeroViewport level={4} />
+      <HeroViewport cityId={state.activeCity} onOpenCities={() => setCitiesOpen(true)} />
+      <CitySelector open={citiesOpen} onOpenChange={setCitiesOpen} />
 
       <section className="rounded-2xl border border-border bg-surface p-4">
         <div className="flex items-baseline justify-between">
