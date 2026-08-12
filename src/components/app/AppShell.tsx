@@ -18,9 +18,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col overflow-hidden bg-background sm:min-h-[860px] sm:rounded-[2.75rem] sm:border sm:border-border sm:shadow-[0_40px_90px_-40px_oklch(0_0_0/90%)]">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-border bg-[oklch(0.19_0.05_275)] px-5 pb-3 pt-6">
           <div className="min-w-0">
-            <p className="truncate font-pixel text-[13px] leading-none text-primary [text-shadow:0_2px_0_oklch(0.45_0.19_275),0_4px_0_oklch(0.28_0.12_275)]">
+            <h1 className="truncate font-pixel text-[13px] leading-none text-primary [text-shadow:0_2px_0_oklch(0.45_0.19_275),0_4px_0_oklch(0.28_0.12_275)]">
               8-BIT RUNNER
-            </p>
+            </h1>
             <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               {TABS.find((t) => t.to === pathname)?.label ?? "Settings"}
             </p>
