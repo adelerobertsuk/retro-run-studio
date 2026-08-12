@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Download, X } from "lucide-react";
+import { drawWatermark } from "@/lib/watermark";
 import { toast } from "sonner";
 import {
   Drawer,
