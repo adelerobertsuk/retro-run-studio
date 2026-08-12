@@ -189,12 +189,12 @@ export function PhotoCards({ run }: { run: RunEntry }) {
           ctx.fillText(line, 90, y);
           line = word;
           y += 44;
-          if (y > 1500) break;
+          if (y > 1440) break;
         } else {
           line = test;
         }
       }
-      if (y <= 1500) ctx.fillText(line, 90, y);
+      if (y <= 1440) ctx.fillText(line, 90, y);
 
       drawStamp(ctx, CARD_W - 150, CARD_H - 110, 66, "VERIFIED", "STRAVA");
 
