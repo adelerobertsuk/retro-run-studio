@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Download, X } from "lucide-react";
+import { drawWatermark } from "@/lib/watermark";
 import { toast } from "sonner";
 import {
   Drawer,
@@ -245,6 +246,8 @@ function exportOverlay(run: RunEntry) {
     60,
     H - 64,
   );
+
+  drawWatermark(ctx, 60, H - 240, 1);
 
   const a = document.createElement("a");
   a.href = canvas.toDataURL("image/png");

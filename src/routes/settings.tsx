@@ -31,7 +31,7 @@ const ROWS: { key: keyof GameState["settings"]; label: string; detail: string }[
 ];
 
 function SettingsPage() {
-  const { state, toggleSetting, updateProfile } = useGameState();
+  const { state, toggleSetting, updateProfile, setHomeGame } = useGameState();
   const { profile } = state;
 
   return (
@@ -107,6 +107,40 @@ function SettingsPage() {
             </div>
           </div>
         )}
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="px-4 py-3.5">
+          <p className="text-[14px] font-medium text-foreground">Home screen game</p>
+          <p className="text-[12px] text-muted-foreground">
+            Pick the mini-game on your dashboard — Snake is a calmer, low-motion option.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl bg-elevated p-1">
+            {(
+              [
+                { id: "jumpman", label: "Jumpman" },
+                { id: "snake", label: "Snake" },
+              ] as const
+            ).map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => {
+                  playSfx("tap");
+                  setHomeGame(g.id);
+                }}
+                aria-pressed={state.homeGame === g.id}
+                className={`rounded-lg py-2 text-[13px] font-medium transition-colors ${
+                  state.homeGame === g.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-surface">

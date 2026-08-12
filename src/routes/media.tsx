@@ -45,18 +45,18 @@ function MediaPage() {
                 : "text-muted-foreground"
             }`}
           >
-            {key === "video" ? "Hero Video" : "Photo Cards"}
+            {key === "video" ? "'80s Video Cam" : "'80s Photo Booth"}
           </button>
         ))}
       </div>
 
       <div>
         <h2 className="text-[15px] font-semibold text-foreground">
-          {tab === "video" ? "Hero Video Studio" : "Photo Share Cards"}
+          {tab === "video" ? "'80s Video Cam" : "'80s Photo Booth"}
         </h2>
         <p className="mt-0.5 text-[12px] text-muted-foreground">
           {tab === "video"
-            ? `Built from ${run.title} · ${run.miles.toFixed(2)} mi`
+            ? `Camcorder filters and REC stamp · ${run.title} · ${run.miles.toFixed(2)} mi`
             : "80s camera filters that transform your selfie into 8-bit character art."}
         </p>
       </div>

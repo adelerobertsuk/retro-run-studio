@@ -9,7 +9,9 @@ import {
 } from "react";
 import { setAudioMuted } from "@/lib/audio";
 
-export type HabitId = "hydrate" | "sleep" | "recovery";
+export type HabitId = "steps" | "sleep" | "recovery";
+
+export type HomeGame = "jumpman" | "snake";
 
 export type RunEntry = {
   date: string; // yyyy-mm-dd
@@ -28,6 +30,7 @@ export type GameState = {
   adventurerNotes: string;
   activeCity: string;
   unlockedCities: string[];
+  homeGame: HomeGame;
   profile: {
     name: string;
     autoSync: boolean;
@@ -42,7 +45,7 @@ export type GameState = {
 };
 
 export const HABITS: { id: HabitId; label: string; detail: string; reward: number }[] = [
-  { id: "hydrate", label: "Hydrate", detail: "8 glasses of water", reward: 8 },
+  { id: "steps", label: "Steps", detail: "8,000 steps tracked", reward: 8 },
   { id: "sleep", label: "Sleep", detail: "7+ hours logged", reward: 12 },
   { id: "recovery", label: "Recovery", detail: "Stretch or mobility", reward: 10 },
 ];
@@ -86,7 +89,7 @@ function seedHabitLog(): Record<string, HabitId[]> {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     if (i % 3 === 0) continue;
-    log[todayKey(d)] = i % 2 === 0 ? ["hydrate", "sleep"] : ["hydrate"];
+    log[todayKey(d)] = i % 2 === 0 ? ["steps", "sleep"] : ["steps"];
   }
   return log;
 }
@@ -101,6 +104,7 @@ function createInitialState(): GameState {
     adventurerNotes: "Chased the sunset through the east side. Boss defeated at mile 4.",
     activeCity: "london",
     unlockedCities: ["london"],
+    homeGame: "jumpman",
     profile: {
       name: "Adele Roberts",
       autoSync: true,
@@ -125,6 +129,7 @@ type Ctx = {
   setNotes: (value: string) => void;
   setActiveCity: (id: string) => void;
   unlockCity: (id: string, cost: number) => boolean;
+  setHomeGame: (game: HomeGame) => void;
   toggleSetting: (key: keyof GameState["settings"]) => void;
   addRun: (run: RunEntry) => void;
   updateProfile: (patch: Partial<GameState["profile"]>) => void;
@@ -193,6 +198,10 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, activeCity: id }));
   }, []);
 
+  const setHomeGame = useCallback((game: HomeGame) => {
+    setState((prev) => ({ ...prev, homeGame: game }));
+  }, []);
+
   const unlockCity = useCallback((id: string, cost: number) => {
     let ok = false;
     setState((prev) => {
@@ -237,6 +246,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       spendTokens,
       setNotes,
       setActiveCity,
+      setHomeGame,
       unlockCity,
       toggleSetting,
       addRun,
@@ -249,12 +259,14 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       spendTokens,
       setNotes,
       setActiveCity,
+      setHomeGame,
       unlockCity,
       toggleSetting,
       addRun,
       updateProfile,
     ],
   );
+
 
   return <GameStateContext.Provider value={value}>{children}</GameStateContext.Provider>;
 }
