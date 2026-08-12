@@ -25,6 +25,8 @@ export type GameState = {
   runs: RunEntry[];
   unlocked: string[];
   adventurerNotes: string;
+  activeCity: string;
+  unlockedCities: string[];
   settings: {
     notifications: boolean;
     stravaSync: boolean;
