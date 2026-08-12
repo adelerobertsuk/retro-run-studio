@@ -19,36 +19,8 @@ import {
 } from "@/components/app/pixel-scene";
 import { formatPace, type RunEntry } from "@/lib/game-state";
 import { playSfx } from "@/lib/audio";
-
-function seedFrom(text: string) {
-  let h = 0;
-  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) % 100000;
-  return h || 7;
-}
-
-function seededRandom(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 1103515245 + 12345) % 2147483648;
-    return s / 2147483648;
-  };
-}
-
-/** Deterministic route polyline for a run, normalised to a W x H box. */
-function routePoints(run: RunEntry, W: number, H: number): [number, number][] {
-  const rnd = seededRandom(seedFrom(run.title + run.date));
-  const points: [number, number][] = [];
-  let x = W * 0.15 + rnd() * W * 0.15;
-  let y = H - H * 0.2;
-  let angle = -Math.PI / 3;
-  for (let i = 0; i < 26; i++) {
-    angle += (rnd() - 0.5) * 1.5;
-    x = Math.max(W * 0.05, Math.min(W * 0.95, x + Math.cos(angle) * (W / 18.75)));
-    y = Math.max(H * 0.1, Math.min(H * 0.9, y + Math.sin(angle) * (H / 10.7)));
-    points.push([x, y]);
-  }
-  return points;
-}
+import { routePoints } from "@/lib/route-path";
+import { RouteRevealStudio } from "./RouteRevealStudio";
 
 /** Deterministic pixel route map derived from the run title + date. */
 function RouteMap({ run }: { run: RunEntry }) {
@@ -344,6 +316,11 @@ export function RunDetailDrawer({
               <Download className="size-4" />
               Export neon route overlay (PNG)
             </button>
+
+            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
+              Neon route reveal video
+            </h3>
+            <RouteRevealStudio run={run} />
 
             <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
               8-bit RPG hero card
