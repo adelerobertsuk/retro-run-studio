@@ -195,6 +195,22 @@
   text-shadow: 0 0 12px color-mix(in oklab, var(--primary) 65%, transparent);
 }
 
+@keyframes runner-jump {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-40px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@utility runner-jump {
+  animation: runner-jump 500ms ease-in-out;
+}
+
 @keyframes skyline-pan {
   from {
     background-position-x: 0;

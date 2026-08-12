@@ -10,22 +10,27 @@ const RUNNER_X = 54;
 const HURDLE_X = 150;
 const HURDLE_W = 10;
 const HURDLE_H = 16;
-const JUMP_MS = 720;
-const JUMP_HEIGHT = 42;
-const TRAVEL = HURDLE_X - RUNNER_X + 34;
 
-type Props = { cityId: string; onOpenCities: () => void };
+const RUNNER_W = 12;
+const RUNNER_H = 16;
+const RUNNER_PX = 4;
+
+const JUMP_MS = 500;
+
+const RUNNER_LEFT = (RUNNER_X / W) * 100;
+const RUNNER_TOP = ((GROUND_Y - RUNNER_H * RUNNER_PX) / H) * 100;
+const RUNNER_WIDTH = ((RUNNER_W * RUNNER_PX) / W) * 100;
 
 /**
- * Static 8-bit city viewport. Nothing animates until the user taps: one
- * controlled, time-based jump arc plays and the scene settles again.
+ * Interactive 8-bit Home viewport. The scene is static until the user taps
+ * the container, which triggers a CSS keyframe jump on the runner sprite and
+ * increments the jump counter.
  */
 export function HeroViewport({ cityId, onOpenCities }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawRef = useRef<(progress: number) => void>(() => {});
-  const rafRef = useRef(0);
-  const jumpingRef = useRef(false);
+  const runnerRef = useRef<HTMLCanvasElement>(null);
   const [jumps, setJumps] = useState(0);
+  const [jumping, setJumping] = useState(false);
   const city = getCity(cityId);
 
   useEffect(() => {
@@ -39,83 +44,83 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
     ctx.imageSmoothingEnabled = false;
     ctx.setTransform(3 * dpr, 0, 0, 3 * dpr, 0, 0);
 
-    // `progress` is 0 when idle and 0→1 across a single tap-triggered jump.
-    const draw = (progress: number) => {
-      drawSky(ctx, W, H, true);
-      drawSkyline(ctx, W, GROUND_Y, 0, 0);
-      drawSkyline(ctx, W, GROUND_Y, 0, 1);
-      drawLandmark(ctx, cityId, W * 0.72, GROUND_Y);
-      drawGround(ctx, W, H, GROUND_Y, 0);
+    drawSky(ctx, W, H, true);
+    drawSkyline(ctx, W, GROUND_Y, 0, 0);
+    drawSkyline(ctx, W, GROUND_Y, 0, 1);
+    drawLandmark(ctx, cityId, W * 0.72, GROUND_Y);
+    drawGround(ctx, W, H, GROUND_Y, 0);
 
-      ctx.fillStyle = "#6366f1";
-      ctx.fillRect(HURDLE_X, GROUND_Y - HURDLE_H, HURDLE_W, HURDLE_H);
-      ctx.fillStyle = "#a5b4fc";
-      ctx.fillRect(HURDLE_X, GROUND_Y - HURDLE_H, HURDLE_W, 2);
+    ctx.fillStyle = "#6366f1";
+    ctx.fillRect(HURDLE_X, GROUND_Y - HURDLE_H, HURDLE_W, HURDLE_H);
+    ctx.fillStyle = "#a5b4fc";
+    ctx.fillRect(HURDLE_X, GROUND_Y - HURDLE_H, HURDLE_W, 2);
+  }, [cityId]);
 
-      // Parabolic arc: fast lift-off, gravity-accelerated landing.
-      const arc = 1 - (2 * progress - 1) ** 2;
-      const lift = Math.round(arc * JUMP_HEIGHT);
-      const forward = Math.round(arc * TRAVEL);
-      const frame = progress > 0 ? 0 : 1;
-      drawRunner(ctx, RUNNER_X + forward, GROUND_Y - lift, 4, frame, DEFAULT_PALETTE);
-    };
-
-    drawRef.current = draw;
-    draw(0);
-    return () => cancelAnimationFrame(rafRef.current);
+  useEffect(() => {
+    const runner = runnerRef.current;
+    if (!runner) return;
+    const ctx = runner.getContext("2d");
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, runner.width, runner.height);
+    drawRunner(ctx, 0, RUNNER_H, 1, 0, DEFAULT_PALETTE);
   }, [cityId]);
 
   const jump = useCallback(() => {
-    if (jumpingRef.current) return;
-    jumpingRef.current = true;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      jumpingRef.current = false;
-      setJumps((j) => j + 1);
-      return;
-    }
-    const start = performance.now();
-    const step = (now: number) => {
-      const p = Math.min(1, (now - start) / JUMP_MS);
-      drawRef.current(p);
-      if (p < 1) {
-        rafRef.current = requestAnimationFrame(step);
-      } else {
-        drawRef.current(0);
-        jumpingRef.current = false;
-        setJumps((j) => j + 1);
+    if (jumping) return;
+    setJumping(true);
+    setJumps((j) => j + 1);
+    window.setTimeout(() => setJumping(false), JUMP_MS);
+  }, [jumping]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === " " || e.key === "ArrowUp") {
+        e.preventDefault();
+        jump();
       }
-    };
-    rafRef.current = requestAnimationFrame(step);
-  }, []);
+    },
+    [jump],
+  );
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-elevated shadow-[var(--shadow-card)]">
-      <button
-        type="button"
-        onClick={jump}
-        onKeyDown={(e) => {
-          if (e.key === " " || e.key === "ArrowUp") {
-            e.preventDefault();
-            jump();
-          }
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={jump}
+      onKeyDown={handleKeyDown}
+      aria-label="Tap to make your runner jump the hurdle"
+      className="pointer-events-auto relative cursor-pointer overflow-hidden rounded-3xl border border-border bg-elevated shadow-[var(--shadow-card)]"
+    >
+      <canvas
+        ref={canvasRef}
+        className="pixelated block h-auto w-full"
+        style={{ aspectRatio: `${W} / ${H}` }}
+        aria-label={`8-bit runner standing in front of the ${city.landmark} in ${city.name}`}
+        role="img"
+      />
+      <canvas
+        ref={runnerRef}
+        width={RUNNER_W}
+        height={RUNNER_H}
+        className={`pixelated pointer-events-none absolute ${jumping ? "runner-jump" : ""}`}
+        style={{
+          left: `${RUNNER_LEFT}%`,
+          top: `${RUNNER_TOP}%`,
+          width: `${RUNNER_WIDTH}%`,
+          aspectRatio: `${RUNNER_W} / ${RUNNER_H}`,
         }}
-        aria-label="Tap to make your runner jump the hurdle"
-        className="block w-full cursor-pointer"
-      >
-        <canvas
-          ref={canvasRef}
-          className="pixelated block h-auto w-full"
-          style={{ aspectRatio: `${W} / ${H}` }}
-          aria-label={`8-bit runner standing in front of the ${city.landmark} in ${city.name}`}
-          role="img"
-        />
-      </button>
+        aria-hidden="true"
+      />
 
       <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
         <button
           type="button"
-          onClick={onOpenCities}
-          className="flex items-center gap-1.5 rounded-full bg-background/75 px-2.5 py-1.5 font-pixel text-[8px] leading-none text-primary backdrop-blur transition-colors hover:bg-background"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenCities();
+          }}
+          className="pointer-events-auto flex items-center gap-1.5 rounded-full bg-background/75 px-2.5 py-1.5 font-pixel text-[8px] leading-none text-primary backdrop-blur transition-colors hover:bg-background"
         >
           <MapPin className="size-3" />
           {city.name.toUpperCase()} — LEVEL {cityLevel(city.id)}
@@ -126,13 +131,15 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
         </span>
       </div>
 
-      <div
-        className={`pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center p-3 transition-opacity duration-500 ${jumps > 0 ? "opacity-0" : "opacity-100"}`}
-      >
-        <span className="rounded-full bg-background/70 px-3 py-1 text-[11px] font-medium tracking-wide text-foreground backdrop-blur">
-          Tap to jump
-        </span>
-      </div>
+      {jumps === 0 && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center p-3">
+          <span className="rounded-full bg-background/70 px-3 py-1 text-[11px] font-medium tracking-wide text-foreground backdrop-blur">
+            Tap to jump
+          </span>
+        </div>
+      )}
     </div>
   );
 }
+
+type Props = { cityId: string; onOpenCities: () => void };
