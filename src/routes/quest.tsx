@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, ChevronRight, Flame } from "lucide-react";
-import { useState } from "react";
+import { Check, ChevronRight, Flame, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { RunDetailDrawer } from "@/components/quest/RunDetailDrawer";
+import { AddRunDrawer } from "@/components/quest/AddRunDrawer";
+import { playSfx } from "@/lib/audio";
 import {
   currentStreak,
   formatPace,
@@ -36,6 +38,17 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 function QuestPage() {
   const { state } = useGameState();
   const [selected, setSelected] = useState<RunEntry | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+
+  // Close any open overlay if this screen unmounts on a tab switch.
+  useEffect(
+    () => () => {
+      setSelected(null);
+      setAddOpen(false);
+    },
+    [],
+  );
+
   const runDates = new Set(state.runs.map((r) => r.date));
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -117,13 +130,29 @@ function QuestPage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-[15px] font-semibold text-foreground">Recent runs</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-foreground">Recent runs</h2>
+          <button
+            type="button"
+            onClick={() => {
+              playSfx("tap");
+              setAddOpen(true);
+            }}
+            className="flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-[12px] font-semibold text-primary transition-colors hover:bg-primary/15"
+          >
+            <Plus className="size-3.5" />
+            Add Manual Run
+          </button>
+        </div>
         <ul className="space-y-2.5">
           {state.runs.slice(0, 5).map((run) => (
             <li key={run.date}>
               <button
                 type="button"
-                onClick={() => setSelected(run)}
+                onClick={() => {
+                  playSfx("tap");
+                  setSelected(run);
+                }}
                 className="flex w-full items-center justify-between rounded-2xl border border-border bg-surface p-3.5 text-left transition-colors hover:bg-elevated"
               >
                 <div>
@@ -148,6 +177,7 @@ function QuestPage() {
       </section>
 
       <RunDetailDrawer run={selected} onOpenChange={(open) => !open && setSelected(null)} />
+      <AddRunDrawer open={addOpen} onOpenChange={setAddOpen} />
     </div>
   );
 }
