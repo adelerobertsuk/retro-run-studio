@@ -11,6 +11,14 @@ import {
   type Palette,
 } from "@/components/app/pixel-scene";
 import { formatPace, type RunEntry } from "@/lib/game-state";
+import { drawMaze } from "./maze-scene";
+
+type Mode = "maze" | "beat";
+
+const MODES: { id: Mode; label: string; hint: string }[] = [
+  { id: "maze", label: "Maze Runner", hint: "Pac-Man route replay" },
+  { id: "beat", label: "Beat-'Em-Up", hint: "Side-scrolling runner" },
+];
 
 const W = 270; // 9:16 logical canvas
 const H = 480;
@@ -51,6 +59,7 @@ type Props = { run: RunEntry; totalMiles: number };
 export function VideoStudio({ run, totalMiles }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [playing, setPlaying] = useState(true);
+  const [mode, setMode] = useState<Mode>("maze");
   const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
   const [photoName, setPhotoName] = useState<string | null>(null);
   const tickRef = useRef(0);
@@ -84,6 +93,33 @@ export function VideoStudio({ run, totalMiles }: Props) {
       const t = tickRef.current;
       const loop = t % 900; // ~15s at 60fps
       const groundY = H - 74;
+
+      if (mode === "maze") {
+        const cycle = t % 780;
+        if (cycle < 660) {
+          drawMaze(ctx, W, H, t, cycle / 660);
+        } else {
+          drawMaze(ctx, W, H, t, 1);
+          ctx.fillStyle = "rgba(5,6,15,0.88)";
+          ctx.fillRect(0, 0, W, H);
+          drawFireworks(ctx, W, H, cycle - 660);
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#fde047";
+          ctx.font = pixelFont(16);
+          ctx.fillText("ROUTE CLEARED", W / 2, H * 0.36);
+          ctx.font = pixelFont(11);
+          ctx.fillStyle = "#e2e8f0";
+          [
+            `DISTANCE   ${run.miles.toFixed(2)} MI`,
+            `PACE       ${formatPace(run.paceSeconds)} /MI`,
+            `PELLETS    ${Math.round(run.miles * 120)}`,
+            `SEASON     ${totalMiles.toFixed(0)} MI`,
+          ].forEach((line, i) => ctx.fillText(line, W / 2, H * 0.46 + i * 22));
+        }
+        drawHud();
+        raf = requestAnimationFrame(render);
+        return;
+      }
 
       drawSky(ctx, W, H, true);
       drawSkyline(ctx, W, groundY, t, 0);
@@ -129,32 +165,33 @@ export function VideoStudio({ run, totalMiles }: Props) {
         ctx.fillText("PRESS SHARE TO CONTINUE", W / 2, H * 0.72);
       }
 
-      // Strava-style HUD overlay
-      ctx.textAlign = "left";
-      ctx.fillStyle = "rgba(9,10,26,0.6)";
-      ctx.fillRect(10, 12, W - 20, 34);
-      ctx.strokeStyle = "#10b981";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(10.5, 12.5, W - 21, 33);
-      ctx.font = pixelFont(9);
-      ctx.fillStyle = "#94a3b8";
-      ctx.fillText("DIST", 18, 25);
-      ctx.fillText("PACE", 106, 25);
-      ctx.fillText("SPD", 194, 25);
-      ctx.fillStyle = "#fbbf24";
-      ctx.font = pixelFont(12);
-      ctx.fillText(`${run.miles.toFixed(2)}mi`, 18, 39);
-      ctx.fillText(`${formatPace(run.paceSeconds)}`, 106, 39);
-      ctx.fillText(`${run.topSpeed.toFixed(1)}`, 194, 39);
-
+      drawHud();
       raf = requestAnimationFrame(render);
     };
     render();
     return () => cancelAnimationFrame(raf);
-  }, [playing, palette, run, totalMiles]);
+  }, [playing, palette, run, totalMiles, mode]);
 
   return (
     <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-1">
+        {MODES.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={() => setMode(m.id)}
+            className={`rounded-xl px-2 py-2 text-left transition-colors ${
+              mode === m.id
+                ? "bg-elevated text-foreground shadow-[var(--shadow-card)]"
+                : "text-muted-foreground"
+            }`}
+          >
+            <span className="block text-[13px] font-medium">{m.label}</span>
+            <span className="block text-[11px] text-muted-foreground">{m.hint}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="relative overflow-hidden rounded-3xl border border-border bg-black shadow-[var(--shadow-card)]">
         <canvas
           ref={canvasRef}
