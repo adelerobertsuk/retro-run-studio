@@ -47,10 +47,6 @@ function HomePage() {
 
   return (
     <div className="space-y-6 px-5 py-5">
-      <h1 className="text-center font-pixel text-[18px] leading-relaxed text-primary [text-shadow:0_3px_0_oklch(0.45_0.19_275),0_6px_0_oklch(0.28_0.12_275)]">
-        8-BIT RUNNER
-      </h1>
-
       <section className="flex items-center gap-3">
         <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border bg-surface p-3">
           <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
