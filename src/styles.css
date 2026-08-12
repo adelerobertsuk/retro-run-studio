@@ -68,6 +68,7 @@
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
+  --font-pixel: "Press Start 2P", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
 :root {

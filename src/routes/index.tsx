@@ -4,9 +4,11 @@ import { HeroViewport } from "@/components/app/HeroViewport";
 import {
   HABITS,
   currentStreak,
+  lifeForce,
   todayKey,
   useGameState,
   weeklyMiles,
+  weeklyPayout,
   WEEKLY_GOAL_MILES,
 } from "@/lib/game-state";
 
@@ -37,6 +39,8 @@ function HomePage() {
   const done = state.habitLog[todayKey()] ?? [];
   const streak = currentStreak(state.runs);
   const miles = weeklyMiles(state.runs);
+  const lf = lifeForce(state);
+  const payout = weeklyPayout(lf);
 
   return (
     <div className="space-y-6 px-5 py-5">
@@ -63,23 +67,26 @@ function HomePage() {
         </div>
       </section>
 
-      <HeroViewport label="Neon District — Level 4" />
+      <HeroViewport level={4} />
 
       <section className="rounded-2xl border border-border bg-surface p-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-[15px] font-semibold text-foreground">Life Force</h2>
           <span className="text-[13px] font-semibold tabular-nums text-primary">
-            {state.lifeForce}%
+            {lf}%
           </span>
         </div>
         <div className="mt-3 h-3 overflow-hidden rounded-full bg-elevated">
           <div
             className="h-full rounded-full transition-[width] duration-500"
-            style={{ width: `${state.lifeForce}%`, backgroundImage: "var(--gradient-energy)" }}
+            style={{ width: `${lf}%`, backgroundImage: "var(--gradient-energy)" }}
           />
         </div>
         <p className="mt-2 text-[12px] text-muted-foreground">
-          {miles.toFixed(1)} of {WEEKLY_GOAL_MILES} miles this week. Log habits to top up energy.
+          {miles.toFixed(1)} of {WEEKLY_GOAL_MILES} miles synced this week plus your daily check-ins.
+        </p>
+        <p className="mt-1 text-[12px] text-primary">
+          Weekly payout boosted to {payout} tokens at this Life Force.
         </p>
       </section>
 

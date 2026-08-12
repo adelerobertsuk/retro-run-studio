@@ -212,3 +212,31 @@ export function weeklyMiles(runs: RunEntry[]) {
     .filter((r) => r.date >= startKey)
     .reduce((sum, r) => sum + r.miles, 0);
 }
+
+/** Habit check-ins completed over the trailing 7 days. */
+export function weeklyCheckIns(habitLog: Record<string, HabitId[]>) {
+  const start = new Date();
+  start.setDate(start.getDate() - 6);
+  const startKey = todayKey(start);
+  return Object.entries(habitLog)
+    .filter(([date]) => date >= startKey)
+    .reduce((sum, [, ids]) => sum + ids.length, 0);
+}
+
+/**
+ * Life Force is derived, not stored: 65% comes from weekly workout volume
+ * synced from Strava, 35% from daily Hydrate / Sleep / Recovery check-ins.
+ */
+export function lifeForce(state: GameState) {
+  const runPart = Math.min(1, weeklyMiles(state.runs) / WEEKLY_GOAL_MILES) * 65;
+  const maxCheckIns = HABITS.length * 7;
+  const habitPart = Math.min(1, weeklyCheckIns(state.habitLog) / maxCheckIns) * 35;
+  return Math.round(runPart + habitPart);
+}
+
+export const BASE_WEEKLY_PAYOUT = 120;
+
+/** Higher Life Force multiplies the weekly Arcade Token payout (1x – 2x). */
+export function weeklyPayout(lf: number) {
+  return Math.round(BASE_WEEKLY_PAYOUT * (1 + lf / 100));
+}
