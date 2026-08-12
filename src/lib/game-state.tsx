@@ -31,6 +31,7 @@ export type GameState = {
   activeCity: string;
   unlockedCities: string[];
   homeGame: HomeGame;
+  bonusDate: string | null;
   profile: {
     name: string;
     autoSync: boolean;
@@ -105,6 +106,7 @@ function createInitialState(): GameState {
     activeCity: "london",
     unlockedCities: ["london"],
     homeGame: "jumpman",
+    bonusDate: null,
     profile: {
       name: "Adele Roberts",
       autoSync: true,
@@ -130,6 +132,7 @@ type Ctx = {
   setActiveCity: (id: string) => void;
   unlockCity: (id: string, cost: number) => boolean;
   setHomeGame: (game: HomeGame) => void;
+  claimDailyBonus: (amount: number) => boolean;
   toggleSetting: (key: keyof GameState["settings"]) => void;
   addRun: (run: RunEntry) => void;
   updateProfile: (patch: Partial<GameState["profile"]>) => void;
@@ -202,6 +205,18 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, homeGame: game }));
   }, []);
 
+  /** One arcade-token bonus per day, awarded by the navigational Jumpman. */
+  const claimDailyBonus = useCallback((amount: number) => {
+    let ok = false;
+    setState((prev) => {
+      const key = todayKey();
+      if (prev.bonusDate === key) return prev;
+      ok = true;
+      return { ...prev, bonusDate: key, tokens: prev.tokens + amount };
+    });
+    return ok;
+  }, []);
+
   const unlockCity = useCallback((id: string, cost: number) => {
     let ok = false;
     setState((prev) => {
@@ -247,6 +262,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       setNotes,
       setActiveCity,
       setHomeGame,
+      claimDailyBonus,
       unlockCity,
       toggleSetting,
       addRun,
@@ -260,12 +276,14 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       setNotes,
       setActiveCity,
       setHomeGame,
+      claimDailyBonus,
       unlockCity,
       toggleSetting,
       addRun,
       updateProfile,
     ],
   );
+
 
 
   return <GameStateContext.Provider value={value}>{children}</GameStateContext.Provider>;

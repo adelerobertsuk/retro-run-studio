@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
-import { Download, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Download, ImagePlus, X } from "lucide-react";
+import { drawAnalogPhoto } from "@/lib/analog-photo";
 import { drawWatermark } from "@/lib/watermark";
 import { toast } from "sonner";
 import {
@@ -231,6 +232,118 @@ function exportOverlay(run: RunEntry) {
   });
 }
 
+function AnalogPhotoBox({ run }: { run: RunEntry }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [name, setName] = useState<string | null>(null);
+
+  const W = 540;
+  const H = 675;
+  const stamp = new Date(`${run.date}T12:00:00`)
+    .toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })
+    .replace(/\//g, " ");
+
+  const render = useCallback(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawAnalogPhoto(ctx, imgRef.current, W, H, stamp);
+  }, [stamp]);
+
+  useEffect(() => {
+    render();
+  }, [render]);
+
+  return (
+    <div className="space-y-2.5">
+      <canvas
+        ref={ref}
+        className="block w-full rounded-2xl border border-border"
+        style={{ aspectRatio: "4 / 5" }}
+        role="img"
+        aria-label={`'80s analog photo for ${run.title}`}
+      />
+      <div className="flex gap-2.5">
+        <label className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-surface py-3 text-[13px] font-medium text-foreground transition-colors hover:bg-elevated">
+          <ImagePlus className="size-4" />
+          {name ? "Change photo" : "Upload photo"}
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              playSfx("tap");
+              const img = new Image();
+              img.onload = () => {
+                imgRef.current = img;
+                setName(file.name);
+                render();
+              };
+              img.src = URL.createObjectURL(file);
+            }}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => {
+            const canvas = ref.current;
+            if (!canvas) return;
+            const a = document.createElement("a");
+            a.href = canvas.toDataURL("image/png");
+            a.download = `8bit-analog-${run.date}.png`;
+            a.click();
+            playSfx("complete");
+            toast.success("Analog photo saved");
+          }}
+          className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface px-4 text-[13px] font-medium text-foreground transition-colors hover:bg-elevated"
+        >
+          <Download className="size-4" />
+          Save
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PhotoExport({ run }: { run: RunEntry }) {
+  return (
+    <>
+      <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
+        '80s analog photo
+      </h3>
+      <AnalogPhotoBox run={run} />
+
+      <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">Route</h3>
+      <RouteMap run={run} />
+
+      <button
+        type="button"
+        onClick={() => exportOverlay(run)}
+        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-primary/15"
+      >
+        <Download className="size-4" />
+        Export neon route overlay (PNG)
+      </button>
+
+      <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
+        8-bit RPG hero card
+      </h3>
+      <div className="flex justify-center rounded-2xl border border-border bg-surface p-4">
+        <div className="w-[190px]">
+          <HeroCardPreview run={run} />
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function RunDetailDrawer({
   run,
   onOpenChange,
@@ -238,6 +351,7 @@ export function RunDetailDrawer({
   run: RunEntry | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [mode, setMode] = useState<"photo" | "video">("photo");
   // Safety net: if this screen unmounts (tab switch) while the drawer is open,
   // clear any body locks vaul may have left behind so the app never freezes.
   useEffect(
@@ -305,31 +419,38 @@ export function RunDetailDrawer({
               ))}
             </div>
 
-            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">Route</h3>
-            <RouteMap run={run} />
-
-            <button
-              type="button"
-              onClick={() => exportOverlay(run)}
-              className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-primary/15"
-            >
-              <Download className="size-4" />
-              Export neon route overlay (PNG)
-            </button>
-
-            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
-              Neon route reveal video
-            </h3>
-            <RouteRevealStudio run={run} />
-
-            <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
-              8-bit RPG hero card
-            </h3>
-            <div className="flex justify-center rounded-2xl border border-border bg-surface p-4">
-              <div className="w-[190px]">
-                <HeroCardPreview run={run} />
-              </div>
+            <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-1">
+              {(["photo", "video"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    playSfx("tap");
+                    setMode(m);
+                  }}
+                  className={`rounded-xl py-2.5 text-[13px] font-semibold capitalize transition-colors ${
+                    mode === m
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
+            <p className="mt-2 text-[12px] text-muted-foreground">
+              {mode === "photo"
+                ? "Instant '80s analog grade plus your 8-bit RPG hero card."
+                : "Animated neon route reveal with stats and the 8-Bit Runner badge."}
+            </p>
+
+            {mode === "photo" ? (
+              <PhotoExport run={run} />
+            ) : (
+              <div className="mt-4">
+                <RouteRevealStudio run={run} />
+              </div>
+            )}
           </div>
         ) : null}
       </DrawerContent>

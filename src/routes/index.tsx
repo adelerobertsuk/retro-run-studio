@@ -9,13 +9,11 @@ import {
   HABITS,
   currentStreak,
   lifeForce,
-  todayKey,
   useGameState,
   weeklyMiles,
   weeklyPayout,
   WEEKLY_GOAL_MILES,
 } from "@/lib/game-state";
-import { playSfx } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,9 +38,8 @@ export const Route = createFileRoute("/")({
 const HABIT_ICONS = { steps: Footprints, sleep: Moon, recovery: HeartPulse } as const;
 
 function HomePage() {
-  const { state, logHabit } = useGameState();
+  const { state } = useGameState();
   const [citiesOpen, setCitiesOpen] = useState(false);
-  const done = state.habitLog[todayKey()] ?? [];
   const streak = currentStreak(state.runs);
   const miles = weeklyMiles(state.runs);
   const lf = lifeForce(state);
@@ -50,10 +47,6 @@ function HomePage() {
 
   return (
     <div className="space-y-6 px-5 py-5">
-      <h1 className="text-center font-pixel text-[15px] leading-relaxed text-primary">
-        <TypingText text="8-BIT RUNNER" speed={90} />
-      </h1>
-
       <section className="flex items-center gap-3">
         <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border bg-surface p-3">
           <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -114,43 +107,27 @@ function HomePage() {
       <section>
         <h2 className="text-[15px] font-semibold text-foreground">Auto-Syncing Metrics</h2>
         <p className="mb-3 mt-0.5 text-[12px] text-muted-foreground">
-          Steps, sleep and recovery sync passively from your connected health data and grant
-          Arcade Tokens. Tap to confirm anything that hasn't landed yet.
+          Pulled passively from Apple Health — nothing to tap.
         </p>
         <div className="space-y-2.5">
           {HABITS.map((habit) => {
             const Icon = HABIT_ICONS[habit.id];
-            const complete = done.includes(habit.id);
             return (
-              <button
+              <div
                 key={habit.id}
-                type="button"
-                onClick={() => {
-                  playSfx("tap");
-                  logHabit(habit.id);
-                }}
-                disabled={complete}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3.5 text-left transition-colors enabled:hover:bg-elevated disabled:opacity-70"
+                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3.5 text-left"
               >
-                <div
-                  className={`flex size-10 items-center justify-center rounded-xl ${
-                    complete ? "bg-primary/20 text-primary" : "bg-elevated text-muted-foreground"
-                  }`}
-                >
+                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
                   <Icon className="size-5" />
                 </div>
                 <div className="flex-1">
                   <p className="text-[14px] font-medium text-foreground">{habit.label}</p>
                   <p className="text-[12px] text-muted-foreground">{habit.detail}</p>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    complete ? "bg-primary/15 text-primary" : "bg-accent/15 text-accent-glow"
-                  }`}
-                >
-                  {complete ? "Logged" : `+${habit.reward}`}
+                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Synced
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>
