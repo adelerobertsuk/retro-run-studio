@@ -170,7 +170,7 @@ export function PhotoCards({ run }: { run: RunEntry }) {
 
       ctx.fillStyle = "#0f172a";
       ctx.beginPath();
-      ctx.roundRect(60, 1270, CARD_W - 120, 260, 24);
+      ctx.roundRect(60, 1270, CARD_W - 120, 210, 24);
       ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,0.12)";
       ctx.lineWidth = 2;
@@ -198,11 +198,11 @@ export function PhotoCards({ run }: { run: RunEntry }) {
 
       drawStamp(ctx, CARD_W - 150, CARD_H - 110, 66, "VERIFIED", "STRAVA");
 
+      drawWatermark(ctx, 60, CARD_H - 130, 1);
       ctx.fillStyle = "#64748b";
-      ctx.font = "500 24px ui-sans-serif, system-ui, sans-serif";
-      ctx.fillText("8-BIT RUNNER · POWERED BY STRAVA", 66, CARD_H - 60);
-
-      drawWatermark(ctx, 60, CARD_H - 220, 1);
+      ctx.font = "500 22px ui-sans-serif, system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("POWERED BY STRAVA", 322, CARD_H - 96);
 
       setCardUrl(canvas.toDataURL("image/png"));
     },
