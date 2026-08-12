@@ -4,7 +4,6 @@ import { Droplets, Flame, HeartPulse, Moon, Zap } from "lucide-react";
 import { HeroViewport } from "@/components/app/HeroViewport";
 import { CitySelector } from "@/components/app/CitySelector";
 import {
-import { playSfx } from "@/lib/audio";
   HABITS,
   currentStreak,
   lifeForce,
@@ -14,6 +13,7 @@ import { playSfx } from "@/lib/audio";
   weeklyPayout,
   WEEKLY_GOAL_MILES,
 } from "@/lib/game-state";
+import { playSfx } from "@/lib/audio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
