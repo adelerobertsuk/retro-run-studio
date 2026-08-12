@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, X } from "lucide-react";
 import { drawWatermark } from "@/lib/watermark";
 import { toast } from "sonner";
@@ -231,6 +231,33 @@ function exportOverlay(run: RunEntry) {
   });
 }
 
+function PhotoExport({ run }: { run: RunEntry }) {
+  return (
+    <>
+      <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">Route</h3>
+      <RouteMap run={run} />
+
+      <button
+        type="button"
+        onClick={() => exportOverlay(run)}
+        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 py-3 text-[14px] font-semibold text-foreground transition-colors hover:bg-primary/15"
+      >
+        <Download className="size-4" />
+        Export neon route overlay (PNG)
+      </button>
+
+      <h3 className="mb-2 mt-5 text-[13px] font-semibold text-foreground">
+        8-bit RPG hero card
+      </h3>
+      <div className="flex justify-center rounded-2xl border border-border bg-surface p-4">
+        <div className="w-[190px]">
+          <HeroCardPreview run={run} />
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function RunDetailDrawer({
   run,
   onOpenChange,
@@ -238,6 +265,7 @@ export function RunDetailDrawer({
   run: RunEntry | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [mode, setMode] = useState<"photo" | "video">("photo");
   // Safety net: if this screen unmounts (tab switch) while the drawer is open,
   // clear any body locks vaul may have left behind so the app never freezes.
   useEffect(
