@@ -17,14 +17,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[oklch(0.16_0.03_265)] sm:flex sm:items-center sm:justify-center sm:py-8">
       <div className="relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col overflow-hidden bg-background sm:min-h-[860px] sm:rounded-[2.75rem] sm:border sm:border-border sm:shadow-[0_40px_90px_-40px_oklch(0_0_0/90%)]">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/85 px-5 pb-3 pt-6 backdrop-blur-xl">
-          <div>
-            <p className="font-pixel text-glow-primary text-[11px] uppercase leading-none text-primary">
-              8-BIT RUNNER
-            </p>
-            <h1 className="mt-1.5 text-[17px] font-semibold tracking-tight text-foreground">
-              {TABS.find((t) => t.to === pathname)?.label ?? "Settings"}
-            </h1>
-          </div>
+          <h1 className="text-[17px] font-semibold tracking-tight text-foreground">
+            {TABS.find((t) => t.to === pathname)?.label ?? "Settings"}
+          </h1>
           <Link
             to="/settings"
             aria-label="Open settings"
