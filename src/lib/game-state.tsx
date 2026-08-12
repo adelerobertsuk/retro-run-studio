@@ -106,6 +106,7 @@ function createInitialState(): GameState {
     activeCity: "london",
     unlockedCities: ["london"],
     homeGame: "jumpman",
+    bonusDate: null,
     profile: {
       name: "Adele Roberts",
       autoSync: true,
