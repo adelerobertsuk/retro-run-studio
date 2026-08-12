@@ -11,7 +11,7 @@ export const Route = createFileRoute("/arcade")({
       {
         name: "description",
         content:
-          "Spend Arcade Tokens on camera rigs, trading card skins and video effects for your 8-bit run media.",
+          "Spend Arcade Tokens on photo styles, trading card skins and video effects for your 8-bit run media.",
       },
       { property: "og:title", content: "Arcade Store — Unlock Rigs With Tokens" },
       {
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/arcade")({
   component: ArcadePage,
 });
 
-const CATEGORIES = ["Camera Rig", "Card Skin", "Video Effect"] as const;
+const CATEGORIES = ["Photo Style", "Card Skin", "Video Effect"] as const;
 
 function ArcadePage() {
   const { state, spendTokens } = useGameState();
