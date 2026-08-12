@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { RIGS } from "@/lib/rigs";
 import { editImage, streamImage } from "@/lib/stream-image";
 import { formatPace, useGameState, type RunEntry } from "@/lib/game-state";
+import { playSfx } from "@/lib/audio";
 import { BootTerminal } from "./BootTerminal";
 import { drawQrBadge, drawStamp, pixelateInto } from "@/lib/card-art";
 
@@ -234,7 +235,10 @@ export function PhotoCards({ run }: { run: RunEntry }) {
   }, [locked, rig, selfie, selfieUrl, compose, state.settings.avatarConsent]);
 
   useEffect(() => {
-    if (bootDone && !busy) setBooting(false);
+    if (bootDone && !busy) {
+      setBooting(false);
+      playSfx("complete");
+    }
   }, [bootDone, busy]);
 
   useEffect(() => {
