@@ -306,6 +306,13 @@ export function VideoStudio({ run, totalMiles }: Props) {
         <span className="absolute right-3 top-3 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-foreground backdrop-blur">
           9:16
         </span>
+        <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none text-foreground backdrop-blur">
+          <span className="size-2 animate-pulse rounded-full bg-red-500" aria-hidden />
+          REC
+        </span>
+        <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[7px] leading-none text-hud backdrop-blur">
+          8-BIT RUNNER
+        </span>
         {booting && (
           <BootTerminal
             muted={!state.settings.audio}
