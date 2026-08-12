@@ -5,6 +5,7 @@ import { RIGS } from "@/lib/rigs";
 import { editImage, streamImage } from "@/lib/stream-image";
 import { formatPace, useGameState, type RunEntry } from "@/lib/game-state";
 import { BootTerminal } from "./BootTerminal";
+import { drawQrBadge, drawStamp, pixelateInto } from "@/lib/card-art";
 
 const CARD_W = 1080;
 const CARD_H = 1620;
@@ -58,16 +59,57 @@ export function PhotoCards({ run }: { run: RunEntry }) {
 
       const img = await loadImage(artSrc);
       const artBox = { x: 60, y: 190, w: CARD_W - 120, h: 900 };
-      const ratio = Math.max(artBox.w / img.width, artBox.h / img.height);
-      const dw = img.width * ratio;
-      const dh = img.height * ratio;
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(artBox.x, artBox.y, artBox.w, artBox.h, 28);
       ctx.clip();
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, artBox.x + (artBox.w - dw) / 2, artBox.y + (artBox.h - dh) / 2, dw, dh);
+      pixelateInto(
+        ctx,
+        img,
+        img.width,
+        img.height,
+        artBox.x,
+        artBox.y,
+        artBox.w,
+        artBox.h,
+        160,
+      );
+      // header scanline sheen keeps the photo reading as 8-bit art
+      ctx.fillStyle = "rgba(5,6,15,0.16)";
+      for (let y = artBox.y; y < artBox.y + artBox.h; y += 6) {
+        ctx.fillRect(artBox.x, y, artBox.w, 2);
+      }
       ctx.restore();
+      ctx.strokeStyle = "rgba(16,185,129,0.55)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(artBox.x, artBox.y, artBox.w, artBox.h, 28);
+      ctx.stroke();
+
+      // Character title plate over the bottom of the portrait
+      ctx.fillStyle = "rgba(5,6,15,0.82)";
+      ctx.beginPath();
+      ctx.roundRect(artBox.x + 24, artBox.y + artBox.h - 130, artBox.w - 48, 100, 18);
+      ctx.fill();
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "700 44px ui-sans-serif, system-ui, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`${run.title.toUpperCase()}`, artBox.x + 48, artBox.y + artBox.h - 78);
+      ctx.fillStyle = "#10b981";
+      ctx.font = "600 26px ui-monospace, Menlo, monospace";
+      ctx.fillText(
+        `LV ${Math.max(1, Math.round(run.miles))} · ROAD ADVENTURER`,
+        artBox.x + 48,
+        artBox.y + artBox.h - 44,
+      );
+
+      // QR badge
+      drawQrBadge(ctx, CARD_W - 210, 1130, 120, `${run.id ?? run.title}-${run.miles}`);
+      ctx.fillStyle = "#64748b";
+      ctx.font = "500 20px ui-monospace, Menlo, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("SCAN", CARD_W - 150, 1290);
+      ctx.textAlign = "left";
 
       ctx.strokeStyle = "#10b981";
       ctx.lineWidth = 6;
@@ -88,12 +130,12 @@ export function PhotoCards({ run }: { run: RunEntry }) {
         ["TOP SPEED", `${run.topSpeed.toFixed(1)} mph`],
       ];
       stats.forEach(([label, value], i) => {
-        const x = 70 + i * 320;
+        const x = 70 + i * 260;
         ctx.fillStyle = "#94a3b8";
         ctx.font = "500 26px ui-sans-serif, system-ui, sans-serif";
         ctx.fillText(label, x, 1170);
         ctx.fillStyle = "#fbbf24";
-        ctx.font = "700 46px ui-monospace, Menlo, monospace";
+        ctx.font = "700 40px ui-monospace, Menlo, monospace";
         ctx.fillText(value, x, 1225);
       });
 
@@ -124,6 +166,8 @@ export function PhotoCards({ run }: { run: RunEntry }) {
         }
       }
       if (y <= 1500) ctx.fillText(line, 90, y);
+
+      drawStamp(ctx, CARD_W - 160, CARD_H - 170, 78, "VERIFIED", "STRAVA");
 
       ctx.fillStyle = "#64748b";
       ctx.font = "500 24px ui-sans-serif, system-ui, sans-serif";
@@ -168,13 +212,22 @@ export function PhotoCards({ run }: { run: RunEntry }) {
         await streamImage(rig.prompt("a determined distance runner"), onFrame);
       }
     } catch (err) {
-      toast.error("Render failed", {
-        description: err instanceof Error ? err.message : "Try again in a moment.",
-      });
+      if (selfieUrl) {
+        // Fall back to a pixel-filtered version of the uploaded photo so the
+        // card always renders in the full RPG trading-card format.
+        await compose(selfieUrl);
+        toast.warning("AI art unavailable — used your photo", {
+          description: "Card rendered with the pixel filter instead.",
+        });
+      } else {
+        toast.error("Render failed", {
+          description: err instanceof Error ? err.message : "Try again in a moment.",
+        });
+      }
     } finally {
       setBusy(false);
     }
-  }, [locked, rig, selfie, state.settings.avatarConsent]);
+  }, [locked, rig, selfie, selfieUrl, compose, state.settings.avatarConsent]);
 
   useEffect(() => {
     if (bootDone && !busy) setBooting(false);
