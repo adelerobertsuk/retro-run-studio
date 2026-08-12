@@ -186,6 +186,15 @@ export function PhotoCards({ run }: { run: RunEntry }) {
       return;
     }
     if (!state.settings.avatarConsent) {
+      if (selfieUrl) {
+        setBooting(true);
+        setBootDone(false);
+        await compose(selfieUrl);
+        toast.info("AI avatar consent is off", {
+          description: "Card rendered with the pixel filter on your photo.",
+        });
+        return;
+      }
       toast.error("AI avatar consent is off", {
         description: "Enable it in Settings to render your character art.",
       });
