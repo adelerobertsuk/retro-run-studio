@@ -10,7 +10,7 @@ export type Rig = {
 export const RIGS: Rig[] = [
   {
     id: "rig-rpg",
-    name: "RPG Trading Card",
+    name: "Retro Trading Card",
     tagline: "Hero portrait, stat block, holo border",
     tokens: 0,
     accent: "var(--primary)",
@@ -37,8 +37,8 @@ export const RIGS: Rig[] = [
   },
   {
     id: "rig-puma",
-    name: "PUMA '88",
-    tagline: "Sportswear catalog, bold color blocking",
+    name: "Neon Synth",
+    tagline: "Neon grid glow, synthwave color blocking",
     tokens: 220,
     accent: "oklch(0.769 0.188 70.08)",
     prompt: (s) =>
@@ -49,7 +49,7 @@ export const RIGS: Rig[] = [
 export type StoreItem = {
   id: string;
   name: string;
-  category: "Camera Rig" | "Card Skin" | "Video Effect";
+  category: "Photo Style" | "Card Skin" | "Video Effect";
   description: string;
   tokens: number;
 };
@@ -58,7 +58,7 @@ export const STORE_ITEMS: StoreItem[] = [
   ...RIGS.map((r) => ({
     id: r.id,
     name: r.name,
-    category: "Camera Rig" as const,
+    category: "Photo Style" as const,
     description: r.tagline,
     tokens: r.tokens,
   })),

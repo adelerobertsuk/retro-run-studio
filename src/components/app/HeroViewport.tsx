@@ -52,7 +52,8 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
       ctx.fillStyle = "#a5b4fc";
       ctx.fillRect(HURDLE_X, GROUND_Y - HURDLE_H, HURDLE_W, 2);
 
-      const arc = Math.sin(Math.PI * progress);
+      // Parabolic arc: fast lift-off, gravity-accelerated landing.
+      const arc = 1 - (2 * progress - 1) ** 2;
       const lift = Math.round(arc * JUMP_HEIGHT);
       const forward = Math.round(arc * TRAVEL);
       const frame = progress > 0 ? 0 : 1;

@@ -64,13 +64,12 @@ export function VideoStudio({ run, totalMiles }: Props) {
   const [mode, setMode] = useState<Mode>("maze");
   const [palette, setPalette] = useState<Palette>(DEFAULT_PALETTE);
   const [photoName, setPhotoName] = useState<string | null>(null);
-  const [booting, setBooting] = useState(true);
+  const [booting, setBooting] = useState(false);
   const { state } = useGameState();
   const tickRef = useRef(0);
 
   const onUpload = useCallback(async (file: File) => {
     setPhotoName(file.name);
-    setBooting(true);
     try {
       setPalette(await paletteFromImage(file));
     } catch {
@@ -208,7 +207,6 @@ export function VideoStudio({ run, totalMiles }: Props) {
               if (m.id !== mode) {
                 setMode(m.id);
                 tickRef.current = 0;
-                setBooting(true);
               }
             }}
             className={`rounded-xl px-2 py-2 text-left transition-colors ${
