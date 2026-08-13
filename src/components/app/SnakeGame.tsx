@@ -138,6 +138,7 @@ export function SnakeGame() {
         body.pop();
       }
       snakeRef.current = body;
+      setDistance((d) => d + 1);
       draw();
     }, STEP_MS);
     return () => window.clearInterval(id);
