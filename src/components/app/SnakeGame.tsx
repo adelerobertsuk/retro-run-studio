@@ -234,6 +234,21 @@ export function SnakeGame() {
   );
 }
 
+function HudBadge({ children, color = "hud" }: { children: ReactNode; color?: "accent" | "hud" }) {
+  const colorClass = color === "accent" ? "text-accent-glow" : "text-hud";
+  return (
+    <span
+      className={`rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none ${colorClass} backdrop-blur`}
+      style={{
+        textShadow:
+          "1px 1px 0 rgba(0,0,0,0.75), -1px -1px 0 rgba(0,0,0,0.75), 1px -1px 0 rgba(0,0,0,0.75), -1px 1px 0 rgba(0,0,0,0.75), 0 1px 2px rgba(0,0,0,0.55)",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 function ControlButton({
   label,
   glyph,
