@@ -3,7 +3,7 @@ import { ChevronLeft, Radio } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { RunnerLevelCard } from "@/components/app/RunnerLevelCard";
 import { WorkoutDataSettings } from "@/components/settings/WorkoutDataSettings";
-import { useGameState, type GameState } from "@/lib/game-state";
+import { useGameState, type BooleanSettingKey, type GameState } from "@/lib/game-state";
 import { playSfx, setAudioMutedWithFeedback } from "@/lib/audio";
 import { ROADMAP_FEATURES } from "@/lib/roadmap";
 import { getGladiatorStatusFromActivity } from "@/lib/gladiator-titles";

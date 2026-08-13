@@ -495,7 +495,15 @@ export function sanitizeLoadout(loadout: Partial<Loadout> | undefined, unlocked:
         ? "avatar-neutral"
         : loadout?.avatarStyle ?? DEFAULT_LOADOUT.avatarStyle,
   };
-  (Object.keys(DEFAULT_LOADOUT) as (keyof Loadout)[]).forEach((key) => {
+  const LOADOUT_KEYS: (keyof Loadout)[] = [
+    "uiPalette",
+    "retroTheme",
+    "avatarStyle",
+    "videoFilter",
+    "photoBooth",
+    "cardBorder",
+  ];
+  LOADOUT_KEYS.forEach((key) => {
     const item = getStoreItem(merged[key]);
     if (!item || !isItemOwned(unlocked, item)) {
       merged[key] = DEFAULT_LOADOUT[key];
