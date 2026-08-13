@@ -491,7 +491,9 @@ export function sanitizeLoadout(loadout: Partial<Loadout> | undefined, unlocked:
     ...DEFAULT_LOADOUT,
     ...loadout,
     avatarStyle:
-      loadout?.avatarStyle === "avatar-classic" ? "avatar-neutral" : loadout?.avatarStyle,
+      loadout?.avatarStyle === "avatar-classic"
+        ? "avatar-neutral"
+        : loadout?.avatarStyle ?? DEFAULT_LOADOUT.avatarStyle,
   };
   (Object.keys(DEFAULT_LOADOUT) as (keyof Loadout)[]).forEach((key) => {
     const item = getStoreItem(merged[key]);

@@ -27,7 +27,7 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-const ROWS: { key: keyof GameState["settings"]; label: string }[] = [
+const ROWS: { key: BooleanSettingKey; label: string }[] = [
   { key: "notifications", label: "Notifications" },
   { key: "avatarConsent", label: "AI Avatar Consent" },
   { key: "audio", label: "Retro Arcade Sound" },

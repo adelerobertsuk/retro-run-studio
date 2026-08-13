@@ -39,8 +39,8 @@ export type ErrandEntry = {
   tokens: number;
   completed: boolean;
   completedAt: string | null;
-  heroTitle?: string;
-  photoSrc?: string;
+  heroTitle?: string | undefined;
+  photoSrc?: string | undefined;
 };
 
 export type GameState = {
@@ -392,7 +392,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const completeErrand = useCallback(
-    (id: string, options?: { photoSrc?: string; heroTitle?: string }) => {
+    (id: string, options?: { photoSrc?: string | undefined; heroTitle?: string | undefined }) => {
       let ok = false;
       setState((prev) => {
         const errand = prev.errands.find((e) => e.id === id);
