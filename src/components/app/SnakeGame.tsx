@@ -91,6 +91,7 @@ export function SnakeGame() {
     queuedRef.current = null;
     foodRef.current = randomFood(snakeRef.current);
     setScore(0);
+    setDistance(0);
     setDead(false);
     setRunning(true);
   }, []);
