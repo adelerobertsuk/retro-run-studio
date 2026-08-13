@@ -39,6 +39,7 @@ export function SnakeGame() {
   const queuedRef = useRef<Dir | null>(null);
   const foodRef = useRef<P>({ x: 13, y: 6 });
   const [score, setScore] = useState(0);
+  const [distance, setDistance] = useState(0);
   const [best, setBest] = useState(0);
   const [running, setRunning] = useState(false);
   const [dead, setDead] = useState(false);
