@@ -191,7 +191,7 @@ type Ctx = {
   addErrand: (text: string) => boolean;
   completeErrand: (
     id: string,
-    options?: { photoSrc?: string; heroTitle?: string },
+    options?: { photoSrc?: string | undefined; heroTitle?: string | undefined },
   ) => boolean;
   removeErrand: (id: string) => boolean;
   updateErrandPhoto: (id: string, photoSrc: string) => void;
