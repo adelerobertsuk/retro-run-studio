@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Gamepad2, Home, Sparkles, Swords, User } from "lucide-react";
-import type { ReactNode } from "react";
-import { playSfx } from "@/lib/audio";
+import { Gamepad2, Home, Sparkles, Swords, User, Volume2, VolumeX } from "lucide-react";
+import { type ReactNode, useEffect, useRef } from "react";
+import { playPageLoadBleep, playSfx, setAudioMutedWithFeedback } from "@/lib/audio";
+import { useGameState } from "@/lib/game-state";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home },
@@ -12,6 +13,29 @@ const TABS = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { state, toggleSetting } = useGameState();
+  const soundOn = state.settings.audio;
+  const prevPath = useRef(pathname);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      prevPath.current = pathname;
+      return;
+    }
+    if (prevPath.current !== pathname) {
+      prevPath.current = pathname;
+      playPageLoadBleep();
+    }
+  }, [pathname]);
+
+  const toggleSound = () => {
+    const enabling = !soundOn;
+    toggleSetting("audio");
+    setAudioMutedWithFeedback(!enabling, enabling);
+    if (enabling) playSfx("complete");
+  };
 
   return (
     <div className="min-h-screen bg-[oklch(0.16_0.03_265)] sm:flex sm:items-center sm:justify-center sm:py-8">
@@ -25,13 +49,28 @@ export function AppShell({ children }: { children: ReactNode }) {
               {TABS.find((t) => t.to === pathname)?.label ?? "Settings"}
             </p>
           </div>
-          <Link
-            to="/settings"
-            aria-label="Open settings"
-            className="flex size-10 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <User className="size-[18px]" />
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleSound}
+              aria-label={soundOn ? "Mute retro arcade sound" : "Enable retro arcade sound"}
+              aria-pressed={soundOn}
+              className={`flex size-10 items-center justify-center rounded-full border transition-colors ${
+                soundOn
+                  ? "border-primary/50 bg-primary/15 text-primary"
+                  : "border-border bg-surface text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {soundOn ? <Volume2 className="size-[18px]" /> : <VolumeX className="size-[18px]" />}
+            </button>
+            <Link
+              to="/settings"
+              aria-label="Open settings"
+              className="flex size-10 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <User className="size-[18px]" />
+            </Link>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto pb-28">{children}</main>

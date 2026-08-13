@@ -242,3 +242,10 @@
     opacity: 1;
   }
 }
+
+.cyoa-eyebrow {
+  text-shadow:
+    0 0 12px oklch(0.72 0.17 278 / 55%),
+    0 1px 0 oklch(0.18 0.04 265 / 80%);
+  letter-spacing: 0.22em;
+}

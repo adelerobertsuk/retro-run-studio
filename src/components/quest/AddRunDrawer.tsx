@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import {
   Drawer,
   DrawerContent,
-  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -46,6 +45,7 @@ export function AddRunDrawer({
       paceSeconds: Math.round(pace),
       topSpeed: Number(topSpeed) || 0,
       title: title.trim() || "Manual Run",
+      manual: true,
     });
     playSfx("complete");
     toast.success("Run logged", {
@@ -62,9 +62,6 @@ export function AddRunDrawer({
             <DrawerTitle className="text-[19px] tracking-tight text-foreground">
               Add manual run
             </DrawerTitle>
-            <DrawerDescription className="text-[12px] text-muted-foreground">
-              Log distance, pace and time yourself — no Strava connection needed.
-            </DrawerDescription>
           </DrawerHeader>
 
           <div className="space-y-3.5">

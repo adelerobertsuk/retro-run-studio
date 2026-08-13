@@ -38,7 +38,7 @@ function blip(freq: number, duration: number, startOffset = 0, gain = 0.05) {
   osc.stop(t0 + duration + 0.02);
 }
 
-export type SfxName = "tab" | "tap" | "jump" | "complete";
+export type SfxName = "tab" | "tap" | "jump" | "complete" | "bleep";
 
 const SFX: Record<SfxName, () => void> = {
   tab: () => blip(660, 0.07),
@@ -52,6 +52,11 @@ const SFX: Record<SfxName, () => void> = {
     blip(880, 0.09, 0.1);
     blip(1180, 0.16, 0.2, 0.06);
   },
+  bleep: () => {
+    blip(440, 0.07, 0, 0.032);
+    blip(554, 0.07, 0.07, 0.034);
+    blip(880, 0.1, 0.14, 0.038);
+  },
 };
 
 /** Play a chiptune effect. No-ops while the global mute toggle is on. */
@@ -61,5 +66,22 @@ export function playSfx(name: SfxName) {
     SFX[name]();
   } catch {
     /* audio unavailable */
+  }
+}
+
+/** Classic boot / page-load bleep — used on navigation when retro sound is on. */
+export function playPageLoadBleep() {
+  playSfx("bleep");
+}
+
+/** Flip mute and optionally play a confirmation bleep when enabling sound. */
+export function setAudioMutedWithFeedback(value: boolean, playConfirm = true) {
+  muted = value;
+  if (!value && playConfirm) {
+    try {
+      SFX.bleep();
+    } catch {
+      /* audio unavailable */
+    }
   }
 }

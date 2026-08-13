@@ -1,70 +1,100 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { Camera, Clapperboard, Layers } from "lucide-react";
+import { ArcadeOverlayStudio } from "@/components/media/ArcadeOverlayStudio";
 import { PhotoCards } from "@/components/media/PhotoCards";
 import { VideoStudio } from "@/components/media/VideoStudio";
+import { playSfx } from "@/lib/audio";
 import { useGameState } from "@/lib/game-state";
 
 export const Route = createFileRoute("/media")({
   head: () => ({
     meta: [
-      { title: "Media Lab — 8-Bit Runner Hero Generator" },
+      { title: "Media Lab — 8-Bit Runner" },
       {
         name: "description",
         content:
-          "Turn your runs into vertical 8-bit arcade videos and HD retro trading cards ready for TikTok and Reels.",
+          "Dazz Cam video, photo booth exports, arcade overlay stickers, and 80s quote PNGs.",
       },
-      { property: "og:title", content: "Media Lab — 8-Bit Runner Hero Generator" },
+      { property: "og:title", content: "Media Lab — 8-Bit Runner" },
       {
         property: "og:description",
-        content: "Vertical 9:16 arcade videos and HD retro trading cards from your run data.",
+        content: "Vintage film filters, route animations, and transparent arcade stickers.",
       },
     ],
   }),
   component: MediaPage,
 });
 
+type MediaTab = "video" | "cards" | "overlays";
+
+const TABS: { id: MediaTab; label: string; icon: typeof Camera }[] = [
+  { id: "video", label: "Video Cam", icon: Clapperboard },
+  { id: "cards", label: "Photo Booth", icon: Camera },
+  { id: "overlays", label: "Overlays", icon: Layers },
+];
+
+function NoRunHint({ onOverlays }: { onOverlays: () => void }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-8 text-center">
+      <p className="text-[14px] font-medium text-foreground">Log a run first</p>
+      <button
+        type="button"
+        onClick={onOverlays}
+        className="mt-4 text-[13px] font-semibold text-primary"
+      >
+        Overlays →
+      </button>
+    </div>
+  );
+}
+
 function MediaPage() {
   const { state } = useGameState();
-  const [tab, setTab] = useState<"video" | "cards">("video");
+  const [tab, setTab] = useState<MediaTab>("video");
   const run = state.runs[0];
-
-  if (!run) return null;
 
   return (
     <div className="space-y-5 px-5 py-5">
-      <div className="grid grid-cols-2 gap-1 rounded-2xl border border-border bg-surface p-1">
-        {(["video", "cards"] as const).map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`rounded-xl py-2 text-[13px] font-medium transition-colors ${
-              tab === key
-                ? "bg-elevated text-foreground shadow-[var(--shadow-card)]"
-                : "text-muted-foreground"
-            }`}
-          >
-            {key === "video" ? "'80s Video Cam" : "'80s Photo Booth"}
-          </button>
-        ))}
+      <header>
+        <h1 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent-glow">
+          Media Lab
+        </h1>
+      </header>
+
+      <div className="relative -mx-1">
+        <div className="flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {TABS.map(({ id, label, icon: Icon }) => {
+            const active = tab === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  if (id !== tab) {
+                    playSfx("tap");
+                    setTab(id);
+                  }
+                }}
+                className={`flex shrink-0 items-center gap-2 rounded-2xl border px-3.5 py-2.5 transition-colors ${
+                  active
+                    ? "border-primary/45 bg-primary/15 text-foreground"
+                    : "border-border bg-surface text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Icon className={`size-4 ${active ? "text-primary" : ""}`} />
+                <span className="text-[12px] font-semibold">{label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div>
-        <h2 className="text-[15px] font-semibold text-foreground">
-          {tab === "video" ? "'80s Video Cam" : "'80s Photo Booth"}
-        </h2>
-        <p className="mt-0.5 text-[12px] text-muted-foreground">
-          {tab === "video"
-            ? "Upload Strava workout media — Dazz Cam VHS grain, chroma bleed, and 9:16 reels."
-            : "Hero trading cards with pixel avatar, arcade stats, and the official 8-Bit Runner stamp."}
-        </p>
-      </div>
-
-      {tab === "video" ? (
-        <VideoStudio run={run} />
-      ) : (
-        <PhotoCards run={run} />
-      )}
+      {tab === "video" &&
+        (run ? <VideoStudio run={run} /> : <NoRunHint onOverlays={() => setTab("overlays")} />)}
+      {tab === "cards" &&
+        (run ? <PhotoCards run={run} /> : <NoRunHint onOverlays={() => setTab("overlays")} />)}
+      {tab === "overlays" && <ArcadeOverlayStudio />}
     </div>
   );
 }

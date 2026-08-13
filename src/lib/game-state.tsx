@@ -24,6 +24,7 @@ import {
   isItemOwned,
   sanitizeLoadout,
 } from "@/lib/arcade-store";
+import { rollSideQuestTitle } from "@/lib/side-quest-card";
 
 export type { RunEntry, WorkoutDataSource, WorkoutSyncMeta } from "@/lib/workouts/types";
 
@@ -36,7 +37,10 @@ export type ErrandEntry = {
   date: string;
   text: string;
   tokens: number;
-  completedAt: string;
+  completed: boolean;
+  completedAt: string | null;
+  heroTitle?: string;
+  photoSrc?: string;
 };
 
 export type GameState = {
@@ -45,6 +49,8 @@ export type GameState = {
   habitLog: Record<string, HabitId[]>; // date -> completed habits
   runs: RunEntry[];
   errands: ErrandEntry[];
+  /** Planned training days (ISO date keys) shown on the Quest calendar. */
+  trainingPlan: string[];
   unlocked: string[];
   loadout: Loadout;
   adventurerNotes: string;
@@ -85,6 +91,30 @@ function newEntryId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function seedTrainingPlan(now = new Date()): string[] {
+  const dates: string[] = [];
+  for (let i = 2; i <= 28; i += 4) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+    if (d.getMonth() === now.getMonth()) dates.push(todayKey(d));
+  }
+  return dates;
+}
+
+export function normalizeErrand(raw: Partial<ErrandEntry> & { completedAt?: string | null }): ErrandEntry {
+  const completed = raw.completed ?? Boolean(raw.completedAt);
+  return {
+    id: raw.id ?? newEntryId(),
+    date: raw.date ?? todayKey(),
+    text: raw.text ?? "Side quest",
+    completed,
+    completedAt: completed ? (raw.completedAt ?? new Date().toISOString()) : null,
+    tokens: completed ? (raw.tokens ?? ERRAND_TOKEN_REWARD) : 0,
+    heroTitle: raw.heroTitle,
+    photoSrc: raw.photoSrc,
+  };
+}
+
 export function todayKey(d = new Date()) {
   return d.toISOString().slice(0, 10);
 }
@@ -108,6 +138,7 @@ function createInitialState(): GameState {
     habitLog: seedHabitLog(),
     runs: generateMockWorkouts(),
     errands: [],
+    trainingPlan: seedTrainingPlan(),
     unlocked: [...FREE_UNLOCKS],
     loadout: { ...DEFAULT_LOADOUT },
     workoutSync: {
@@ -156,7 +187,14 @@ type Ctx = {
   setWorkoutDataSource: (source: WorkoutDataSource) => void;
   syncWorkouts: () => Promise<import("@/lib/workouts/types").WorkoutSyncResult>;
   addRun: (run: RunEntry) => void;
+  removeRun: (date: string) => boolean;
   addErrand: (text: string) => boolean;
+  completeErrand: (
+    id: string,
+    options?: { photoSrc?: string; heroTitle?: string },
+  ) => boolean;
+  removeErrand: (id: string) => boolean;
+  updateErrandPhoto: (id: string, photoSrc: string) => void;
   updateProfile: (patch: Partial<GameState["profile"]>) => void;
 };
 
@@ -177,7 +215,8 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         const merged = {
           ...createInitialState(),
           ...parsed,
-          errands: parsed.errands ?? [],
+          errands: (parsed.errands ?? []).map((e) => normalizeErrand(e)),
+          trainingPlan: parsed.trainingPlan ?? seedTrainingPlan(),
           loadout,
           unlocked,
           workoutSync: { ...createInitialState().workoutSync, ...parsed.workoutSync },
@@ -318,6 +357,20 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const removeRun = useCallback((date: string) => {
+    let ok = false;
+    setState((prev) => {
+      const run = prev.runs.find((r) => r.date === date);
+      if (!run?.manual) return prev;
+      ok = true;
+      return {
+        ...prev,
+        runs: prev.runs.filter((r) => r.date !== date),
+      };
+    });
+    return ok;
+  }, []);
+
   const addErrand = useCallback((text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return false;
@@ -326,17 +379,65 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         id: newEntryId(),
         date: todayKey(),
         text: trimmed,
-        tokens: ERRAND_TOKEN_REWARD,
-        completedAt: new Date().toISOString(),
+        tokens: 0,
+        completed: false,
+        completedAt: null,
       };
       return {
         ...prev,
         errands: [entry, ...prev.errands],
-        tokens: prev.tokens + ERRAND_TOKEN_REWARD,
-        lifeForce: Math.min(100, prev.lifeForce + ERRAND_LIFE_FORCE_BUMP),
       };
     });
     return true;
+  }, []);
+
+  const completeErrand = useCallback(
+    (id: string, options?: { photoSrc?: string; heroTitle?: string }) => {
+      let ok = false;
+      setState((prev) => {
+        const errand = prev.errands.find((e) => e.id === id);
+        if (!errand || errand.completed) return prev;
+        ok = true;
+        const heroTitle = options?.heroTitle ?? rollSideQuestTitle(errand);
+        const completedAt = new Date().toISOString();
+        const updated: ErrandEntry = {
+          ...errand,
+          completed: true,
+          completedAt,
+          tokens: ERRAND_TOKEN_REWARD,
+          heroTitle,
+          photoSrc: options?.photoSrc ?? errand.photoSrc,
+        };
+        return {
+          ...prev,
+          errands: prev.errands.map((e) => (e.id === id ? updated : e)),
+          tokens: prev.tokens + ERRAND_TOKEN_REWARD,
+          lifeForce: Math.min(100, prev.lifeForce + ERRAND_LIFE_FORCE_BUMP),
+        };
+      });
+      return ok;
+    },
+    [],
+  );
+
+  const updateErrandPhoto = useCallback((id: string, photoSrc: string) => {
+    setState((prev) => ({
+      ...prev,
+      errands: prev.errands.map((e) => (e.id === id ? { ...e, photoSrc } : e)),
+    }));
+  }, []);
+
+  const removeErrand = useCallback((id: string) => {
+    let ok = false;
+    setState((prev) => {
+      if (!prev.errands.some((e) => e.id === id)) return prev;
+      ok = true;
+      return {
+        ...prev,
+        errands: prev.errands.filter((e) => e.id !== id),
+      };
+    });
+    return ok;
   }, []);
 
   const updateProfile = useCallback((patch: Partial<GameState["profile"]>) => {
@@ -386,7 +487,11 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       setWorkoutDataSource,
       syncWorkouts,
       addRun,
+      removeRun,
       addErrand,
+      completeErrand,
+      updateErrandPhoto,
+      removeErrand,
       updateProfile,
     }),
     [
@@ -405,7 +510,11 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       setWorkoutDataSource,
       syncWorkouts,
       addRun,
+      removeRun,
       addErrand,
+      completeErrand,
+      updateErrandPhoto,
+      removeErrand,
       updateProfile,
     ],
   );

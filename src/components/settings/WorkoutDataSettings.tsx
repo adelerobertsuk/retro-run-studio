@@ -4,9 +4,9 @@ import { playSfx } from "@/lib/audio";
 import { useGameState, type WorkoutDataSource } from "@/lib/game-state";
 import { Switch } from "@/components/ui/switch";
 
-const SOURCES: { id: WorkoutDataSource; label: string; hint: string }[] = [
-  { id: "mock", label: "Mock data", hint: "Local generator — great for testing" },
-  { id: "strava", label: "Live Strava", hint: "Pull workouts from the Strava API" },
+const SOURCES: { id: WorkoutDataSource; label: string }[] = [
+  { id: "mock", label: "Mock data" },
+  { id: "strava", label: "Live Strava" },
 ];
 
 function formatSyncedAt(iso: string | null) {
@@ -50,15 +50,11 @@ export function WorkoutDataSettings() {
     <section className="overflow-hidden rounded-2xl border border-border bg-surface">
       <div className="border-b border-border px-4 py-3.5">
         <p className="text-[14px] font-medium text-foreground">Workout data</p>
-        <p className="text-[12px] text-muted-foreground">
-          Mock generator for local dev, or live Strava when connected.
-        </p>
       </div>
 
       <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3.5">
         <div>
           <p className="text-[14px] font-medium text-foreground">Strava account sync</p>
-          <p className="text-[12px] text-muted-foreground">Required for live workout import</p>
         </div>
         <Switch
           checked={settings.stravaSync}
@@ -91,22 +87,11 @@ export function WorkoutDataSettings() {
               }`}
             >
               <span className="block text-[13px] font-medium">{s.label}</span>
-              <span
-                className={`block text-[10px] leading-snug ${
-                  settings.workoutDataSource === s.id
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {s.hint}
-              </span>
             </button>
           ))}
         </div>
         {settings.workoutDataSource === "strava" && !settings.stravaSync && (
-          <p className="mt-2 text-[11px] text-amber-400/90">
-            Turn on Strava sync above to use live data — mock fallback applies until then.
-          </p>
+          <p className="mt-2 text-[11px] text-amber-400/90">Enable Strava sync above.</p>
         )}
       </div>
 

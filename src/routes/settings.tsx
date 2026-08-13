@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Radio } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { RunnerLevelCard } from "@/components/app/RunnerLevelCard";
 import { WorkoutDataSettings } from "@/components/settings/WorkoutDataSettings";
 import { useGameState, type GameState } from "@/lib/game-state";
-import { playSfx } from "@/lib/audio";
+import { playSfx, setAudioMutedWithFeedback } from "@/lib/audio";
+import { ROADMAP_FEATURES } from "@/lib/roadmap";
+import { getGladiatorStatusFromActivity } from "@/lib/gladiator-titles";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -24,15 +27,16 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-const ROWS: { key: keyof GameState["settings"]; label: string; detail: string }[] = [
-  { key: "notifications", label: "Notifications", detail: "Streak reminders and quest alerts" },
-  { key: "avatarConsent", label: "AI Avatar Consent", detail: "Allow photos to be stylized by AI" },
-  { key: "audio", label: "Sound", detail: "8-bit chiptune effects — off to mute the app" },
+const ROWS: { key: keyof GameState["settings"]; label: string }[] = [
+  { key: "notifications", label: "Notifications" },
+  { key: "avatarConsent", label: "AI Avatar Consent" },
+  { key: "audio", label: "Retro Arcade Sound" },
 ];
 
 function SettingsPage() {
   const { state, toggleSetting, updateProfile, setHomeGame } = useGameState();
   const { profile } = state;
+  const runner = getGladiatorStatusFromActivity(state);
 
   return (
     <div className="space-y-6 px-5 py-5">
@@ -54,11 +58,12 @@ function SettingsPage() {
             .toUpperCase() || "8B"}
         </div>
         <div>
-          <p className="text-[16px] font-semibold text-foreground">{profile.name}</p>
-          <p className="text-[12px] text-muted-foreground">
-            Level {Math.floor(state.tokens / 100) + 1} Adventurer ·{" "}
-            {state.tokens.toLocaleString()} tokens
-          </p>
+            <p className="text-[16px] font-semibold text-foreground">{profile.name}</p>
+            <p className="text-[12px] font-medium text-primary">{runner.title}</p>
+            <p className="text-[11px] text-muted-foreground">
+              Runner Lv {runner.level} · {runner.xp.toLocaleString()} XP ·{" "}
+              {state.tokens.toLocaleString()} tokens
+            </p>
         </div>
       </section>
 
@@ -66,11 +71,6 @@ function SettingsPage() {
         <div className="flex items-center justify-between gap-4 px-4 py-3.5">
           <div>
             <p className="text-[14px] font-medium text-foreground">Auto-sync profile</p>
-            <p className="text-[12px] text-muted-foreground">
-              {profile.autoSync
-                ? "Name and city pulled from your Strava account"
-                : "Edit your details manually below"}
-            </p>
           </div>
           <Switch
             checked={profile.autoSync}
@@ -109,14 +109,13 @@ function SettingsPage() {
         )}
       </section>
 
+      <RunnerLevelCard />
+
       <WorkoutDataSettings />
 
       <section className="overflow-hidden rounded-2xl border border-border bg-surface">
         <div className="px-4 py-3.5">
           <p className="text-[14px] font-medium text-foreground">Home screen game</p>
-          <p className="text-[12px] text-muted-foreground">
-            Pick the mini-game on your dashboard — Snake is a calmer, low-motion option.
-          </p>
           <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl bg-elevated p-1">
             {(
               [
@@ -155,18 +154,51 @@ function SettingsPage() {
           >
             <div>
               <p className="text-[14px] font-medium text-foreground">{row.label}</p>
-              <p className="text-[12px] text-muted-foreground">{row.detail}</p>
             </div>
             <Switch
               checked={state.settings[row.key]}
               onCheckedChange={() => {
-                if (row.key !== "audio" || !state.settings.audio) playSfx("tap");
+                if (row.key === "audio") {
+                  const enabling = !state.settings.audio;
+                  toggleSetting("audio");
+                  setAudioMutedWithFeedback(!enabling, enabling);
+                  if (enabling) playSfx("complete");
+                  return;
+                }
+                playSfx("tap");
                 toggleSetting(row.key);
               }}
               aria-label={row.label}
             />
           </div>
         ))}
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-dashed border-accent/35 bg-surface">
+        <div className="border-b border-border px-4 py-3.5">
+          <p className="font-pixel text-[8px] tracking-[0.16em] text-accent-glow">COMING SOON</p>
+          <p className="mt-1 text-[14px] font-semibold text-foreground">Feature roadmap</p>
+        </div>
+        {ROADMAP_FEATURES.map((feature) => (
+          <div key={feature.id} className="border-t border-border px-4 py-3.5">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent-glow">
+                <Radio className="size-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[14px] font-semibold text-foreground">{feature.title}</p>
+                <p className="mt-0.5 text-[12px] text-muted-foreground">{feature.summary}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="rounded-2xl border border-border bg-surface px-4 py-3.5">
+        <Link to="/media" className="flex items-center justify-between text-[14px] font-medium text-foreground">
+          Media Lab overlays
+          <span className="text-[13px] font-semibold text-primary">Open →</span>
+        </Link>
       </section>
 
       <p className="px-1 text-center text-[11px] text-muted-foreground">

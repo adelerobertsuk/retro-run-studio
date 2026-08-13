@@ -4,6 +4,8 @@ export type RunEntry = {
   paceSeconds: number; // per mile
   topSpeed: number; // mph
   title: string;
+  /** Logged via Quest → Log run (not synced workouts). */
+  manual?: boolean;
 };
 
 export type WorkoutDataSource = "mock" | "strava";

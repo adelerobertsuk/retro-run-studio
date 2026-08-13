@@ -13,11 +13,11 @@ export type Palette = {
 };
 
 export const DEFAULT_PALETTE: Palette = {
-  skinTone: "#f2c49b",
-  hair: "#2d1b12",
-  shirt: "#10b981",
-  shorts: "#6366f1",
-  shoes: "#f8fafc",
+  skinTone: "#e8c4a8",
+  hair: "#5c5c5c",
+  shirt: "#64748b",
+  shorts: "#334155",
+  shoes: "#f1f5f9",
 };
 
 function rand(seed: number) {

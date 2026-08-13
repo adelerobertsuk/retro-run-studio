@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ChevronRight, MapPin } from "lucide-react";
 import { drawGround, drawRunner, drawSky, drawSkyline } from "./pixel-scene";
+import { TypingText } from "./TypingText";
 import { getAvatarPalette } from "@/lib/arcade-store";
 import { cityLevel, drawLandmark, getCity } from "@/lib/cities";
 import { playSfx } from "@/lib/audio";
@@ -31,26 +32,39 @@ const BLOCKS = [
   { to: "/arcade", label: "ARCADE", x: 230 },
 ] as const;
 
-type Props = { cityId: string; onOpenCities: () => void };
+type Props = {
+  cityId: string;
+  playerName: string;
+  onOpenCities: () => void;
+};
+
+const HOME_X = 54;
+const ENTER_START_X = -RUNNER_W - 4;
+const PIXEL_FONT = '"Press Start 2P", ui-monospace, Menlo, monospace';
+
+function formatCityLevel(cityName: string, level: number) {
+  return `${cityName} - Level ${level}`;
+}
 
 /**
- * Interactive 8-bit "Jumpman" viewport: parabolic jump physics plus real
- * horizontal movement (arrow keys or the on-screen pads). The scene stays
- * still until the player starts, so nothing flashes on load.
+ * Interactive 8-bit "Jumpman" viewport: the runner makes one entrance pass,
+ * settles into place, then idles until the player jumps or uses the pads.
  */
-export function HeroViewport({ cityId, onOpenCities }: Props) {
+export function HeroViewport({ cityId, playerName, onOpenCities }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const dirRef = useRef(1);
-  const playerRef = useRef({ x: 54, y: 0, vy: 0, air: false, frame: 0 });
+  const playerRef = useRef({ x: ENTER_START_X, y: 0, vy: 0, air: false, frame: 0 });
+  const introRef = useRef<"entering" | "idle">("entering");
+  const moveRef = useRef(0);
   const hitRef = useRef<{ index: number; until: number } | null>(null);
   const navigatingRef = useRef(false);
-  const [jumps, setJumps] = useState(0);
   const city = getCity(cityId);
   const navigate = useNavigate();
   const { claimDailyBonus, state } = useGameState();
   const avatarPalette = getAvatarPalette(state.loadout.avatarStyle);
+  const displayName = (playerName.trim().split(" ")[0] || "RUNNER").toUpperCase();
+  const playerTag = `READY PLAYER ONE — ${displayName}`;
 
   // Static background, rendered once per city into an offscreen canvas.
   useEffect(() => {
@@ -65,6 +79,9 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
     drawSkyline(ctx, W, GROUND_Y, 0, 1);
     drawLandmark(ctx, cityId, W * 0.72, GROUND_Y);
     bgRef.current = bg;
+    playerRef.current = { x: ENTER_START_X, y: 0, vy: 0, air: false, frame: 0 };
+    introRef.current = "entering";
+    moveRef.current = 0;
     paint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cityId]);
@@ -87,14 +104,15 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
       ctx.fillStyle = lit ? "#fde68a" : "#a5b4fc";
       ctx.fillRect(b.x, y, BLOCK_W, 2);
       ctx.fillStyle = lit ? "#3b2a06" : "#e0e7ff";
-      ctx.font = '7px "Press Start 2P", ui-monospace, Menlo, monospace';
+      ctx.font = `7px ${PIXEL_FONT}`;
       ctx.textAlign = "center";
       ctx.fillText(b.label, b.x + BLOCK_W / 2, y + 13);
       ctx.textAlign = "left";
     });
 
     const p = playerRef.current;
-    drawRunner(ctx, Math.round(p.x), GROUND_Y + Math.round(p.y), RUNNER_PX, p.frame, avatarPalette);
+    const runnerX = Math.round(p.x);
+    drawRunner(ctx, runnerX, GROUND_Y + Math.round(p.y), RUNNER_PX, p.frame, avatarPalette);
   }, [avatarPalette]);
 
   // Size the canvas for the device pixel ratio.
@@ -114,10 +132,9 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
     p.vy = JUMP_V;
     p.air = true;
     playSfx("jump");
-    setJumps((j) => j + 1);
   }, []);
 
-  // Continuous walk-cycle loop.
+  // Physics loop — entrance pass once, then idle until the player moves or jumps.
   useEffect(() => {
     let last = performance.now();
     const tick = (now: number) => {
@@ -125,14 +142,23 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
       last = now;
       const p = playerRef.current;
 
-      // stable horizontal walk cycle, bouncing between the viewport edges
-      p.x += WALK_SPEED * dirRef.current * dt;
-      if (p.x <= MIN_X) {
-        p.x = MIN_X;
-        dirRef.current = 1;
-      } else if (p.x >= MAX_X) {
-        p.x = MAX_X;
-        dirRef.current = -1;
+      if (introRef.current === "entering") {
+        p.x += WALK_SPEED * dt;
+        p.frame += dt * 0.4;
+        if (p.x >= HOME_X) {
+          p.x = HOME_X;
+          introRef.current = "idle";
+        }
+      } else {
+        const move = moveRef.current;
+        if (move !== 0) {
+          p.x += WALK_SPEED * move * dt;
+          if (p.x <= MIN_X) p.x = MIN_X;
+          else if (p.x >= MAX_X) p.x = MAX_X;
+          p.frame += dt * 0.4;
+        } else if (!p.air) {
+          p.frame += dt * 0.08;
+        }
       }
 
       p.vy += GRAVITY * dt;
@@ -142,7 +168,6 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
         p.vy = 0;
         p.air = false;
       }
-      p.frame += dt * 0.35;
 
       // Head strike against the menu blocks above.
       if (p.vy < 0 && !navigatingRef.current) {
@@ -185,12 +210,21 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
         e.preventDefault();
         jump();
       }
-      if (e.key === "ArrowLeft") dirRef.current = -1;
-      if (e.key === "ArrowRight") dirRef.current = 1;
+      if (e.key === "ArrowLeft") moveRef.current = -1;
+      if (e.key === "ArrowRight") moveRef.current = 1;
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") moveRef.current = 0;
     };
     window.addEventListener("keydown", down);
-    return () => window.removeEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
   }, [jump]);
+
+  const cityProgressLabel = formatCityLevel(city.name, cityLevel(city.id));
 
   return (
     <div className="space-y-3">
@@ -212,6 +246,15 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
           role="img"
         />
 
+        <div
+          className="pointer-events-none absolute bottom-[14%] left-3 z-10 max-w-[62%] rounded-md bg-[#05060f]/78 px-2 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.55)] backdrop-blur-[2px]"
+          aria-live="polite"
+        >
+          <p className="font-pixel text-[7px] leading-relaxed tracking-[0.04em] text-[#fde047]">
+            <TypingText text={playerTag} speed={72} />
+          </p>
+        </div>
+
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
           <button
             type="button"
@@ -222,12 +265,9 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
             className="flex items-center gap-1.5 rounded-full bg-background/75 px-2.5 py-1.5 font-pixel text-[8px] leading-none text-primary backdrop-blur transition-colors hover:bg-background"
           >
             <MapPin className="size-3" />
-            {city.name.toUpperCase()} — LEVEL {cityLevel(city.id)}
+            {cityProgressLabel}
             <ChevronRight className="size-3" />
           </button>
-          <span className="pointer-events-none rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none text-hud backdrop-blur">
-            JUMPS {jumps}
-          </span>
         </div>
       </div>
 
@@ -236,9 +276,11 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
           label="Move left"
           glyph="◀"
           onDown={() => {
-            dirRef.current = -1;
+            moveRef.current = -1;
           }}
-          onUp={() => {}}
+          onUp={() => {
+            if (moveRef.current === -1) moveRef.current = 0;
+          }}
         />
         <button
           type="button"
@@ -251,15 +293,13 @@ export function HeroViewport({ cityId, onOpenCities }: Props) {
           label="Move right"
           glyph="▶"
           onDown={() => {
-            dirRef.current = 1;
+            moveRef.current = 1;
           }}
-          onUp={() => {}}
+          onUp={() => {
+            if (moveRef.current === 1) moveRef.current = 0;
+          }}
         />
       </div>
-      <p className="text-center text-[12px] text-muted-foreground">
-        Jump into a block to hop to Quest, Media Lab or Arcade — first strike each day pays a
-        bonus token.
-      </p>
     </div>
   );
 }
