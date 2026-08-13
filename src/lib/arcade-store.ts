@@ -506,7 +506,7 @@ export function sanitizeLoadout(loadout: Partial<Loadout> | undefined, unlocked:
   LOADOUT_KEYS.forEach((key) => {
     const item = getStoreItem(merged[key]);
     if (!item || !isItemOwned(unlocked, item)) {
-      merged[key] = DEFAULT_LOADOUT[key];
+      (merged as Record<keyof Loadout, Loadout[keyof Loadout]>)[key] = DEFAULT_LOADOUT[key];
     }
   });
   return merged;

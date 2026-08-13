@@ -169,7 +169,7 @@ function createInitialState(): GameState {
 
 const STORAGE_KEY = "eight-bit-runner-state-v1";
 
-type BooleanSettingKey = Exclude<keyof GameState["settings"], "workoutDataSource">;
+export type BooleanSettingKey = Exclude<keyof GameState["settings"], "workoutDataSource">;
 
 type Ctx = {
   state: GameState;
