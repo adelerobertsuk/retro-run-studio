@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 /** Abstract vintage-camera icons — Dazz Cam–style, no trademarked brands. */
 
-function IconShell({ children, className = "size-10" }: { children: ReactNode; className?: string }) {
+function IconShell({ children, className = "size-10" }: { children: ReactNode; className?: string | undefined }) {
   return (
     <svg viewBox="0 0 48 48" className={className} aria-hidden>
       {children}

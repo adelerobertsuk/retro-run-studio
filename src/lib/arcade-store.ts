@@ -491,12 +491,22 @@ export function sanitizeLoadout(loadout: Partial<Loadout> | undefined, unlocked:
     ...DEFAULT_LOADOUT,
     ...loadout,
     avatarStyle:
-      loadout?.avatarStyle === "avatar-classic" ? "avatar-neutral" : loadout?.avatarStyle,
+      loadout?.avatarStyle === "avatar-classic"
+        ? "avatar-neutral"
+        : loadout?.avatarStyle ?? DEFAULT_LOADOUT.avatarStyle,
   };
-  (Object.keys(DEFAULT_LOADOUT) as (keyof Loadout)[]).forEach((key) => {
+  const LOADOUT_KEYS: (keyof Loadout)[] = [
+    "uiPalette",
+    "retroTheme",
+    "avatarStyle",
+    "videoFilter",
+    "photoBooth",
+    "cardBorder",
+  ];
+  LOADOUT_KEYS.forEach((key) => {
     const item = getStoreItem(merged[key]);
     if (!item || !isItemOwned(unlocked, item)) {
-      merged[key] = DEFAULT_LOADOUT[key];
+      (merged as Record<keyof Loadout, Loadout[keyof Loadout]>)[key] = DEFAULT_LOADOUT[key];
     }
   });
   return merged;

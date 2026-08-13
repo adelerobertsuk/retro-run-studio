@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { playSfx } from "@/lib/audio";
 
 const COLS = 20;
@@ -39,6 +39,7 @@ export function SnakeGame() {
   const queuedRef = useRef<Dir | null>(null);
   const foodRef = useRef<P>({ x: 13, y: 6 });
   const [score, setScore] = useState(0);
+  const [distance, setDistance] = useState(0);
   const [best, setBest] = useState(0);
   const [running, setRunning] = useState(false);
   const [dead, setDead] = useState(false);
@@ -90,6 +91,7 @@ export function SnakeGame() {
     queuedRef.current = null;
     foodRef.current = randomFood(snakeRef.current);
     setScore(0);
+    setDistance(0);
     setDead(false);
     setRunning(true);
   }, []);
@@ -136,6 +138,7 @@ export function SnakeGame() {
         body.pop();
       }
       snakeRef.current = body;
+      setDistance((d) => d + 1);
       draw();
     }, STEP_MS);
     return () => window.clearInterval(id);
@@ -195,12 +198,10 @@ export function SnakeGame() {
           }}
         />
         <div className="absolute inset-x-0 top-0 flex justify-between p-3">
-          <span className="rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none text-accent-glow backdrop-blur">
-            SNAKE
-          </span>
-          <span className="rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none text-hud backdrop-blur">
-            SCORE {score} · BEST {best}
-          </span>
+          <HudBadge color="accent">SNAKE</HudBadge>
+          <HudBadge>
+            SCORE {score} · DIST {distance} · BEST {best}
+          </HudBadge>
         </div>
         {!running && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-sm">
@@ -230,6 +231,21 @@ export function SnakeGame() {
         <ControlButton label="Right" onPress={() => turn("right")} glyph="▶" />
       </div>
     </div>
+  );
+}
+
+function HudBadge({ children, color = "hud" }: { children: ReactNode; color?: "accent" | "hud" }) {
+  const colorClass = color === "accent" ? "text-accent-glow" : "text-hud";
+  return (
+    <span
+      className={`rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none ${colorClass} backdrop-blur`}
+      style={{
+        textShadow:
+          "1px 1px 0 rgba(0,0,0,0.75), -1px -1px 0 rgba(0,0,0,0.75), 1px -1px 0 rgba(0,0,0,0.75), -1px 1px 0 rgba(0,0,0,0.75), 0 1px 2px rgba(0,0,0,0.55)",
+      }}
+    >
+      {children}
+    </span>
   );
 }
 
