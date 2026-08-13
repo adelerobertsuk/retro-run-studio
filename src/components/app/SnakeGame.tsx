@@ -198,12 +198,10 @@ export function SnakeGame() {
           }}
         />
         <div className="absolute inset-x-0 top-0 flex justify-between p-3">
-          <span className="rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none text-accent-glow backdrop-blur">
-            SNAKE
-          </span>
-          <span className="rounded-full bg-background/70 px-2.5 py-1 font-pixel text-[8px] leading-none text-hud backdrop-blur">
-            SCORE {score} · BEST {best}
-          </span>
+          <HudBadge color="accent">SNAKE</HudBadge>
+          <HudBadge>
+            SCORE {score} · DIST {distance} · BEST {best}
+          </HudBadge>
         </div>
         {!running && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-sm">
