@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Gamepad2, Home, Sparkles, Swords, User, Volume2, VolumeX } from "lucide-react";
+import { Coffee, Gamepad2, Home, Sparkles, Swords, User, Volume2, VolumeX } from "lucide-react";
 import { type ReactNode, useEffect, useRef } from "react";
 import { playPageLoadBleep, playSfx, setAudioMutedWithFeedback } from "@/lib/audio";
 import { useGameState } from "@/lib/game-state";
@@ -50,6 +50,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/brew"
+              aria-label="Open Brew Request"
+              className="flex size-10 items-center justify-center rounded-full border border-amber-400/40 bg-brew-orange text-brew-ink transition-colors hover:brightness-110"
+            >
+              <Coffee className="size-[18px]" strokeWidth={2.2} />
+            </Link>
             <button
               type="button"
               onClick={toggleSound}

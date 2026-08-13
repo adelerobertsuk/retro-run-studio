@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { Flame, Footprints, HeartPulse, Moon } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Coffee, Flame, Footprints, HeartPulse, Moon } from "lucide-react";
 import { ArcadeCoinIcon } from "@/components/app/ArcadeCoinIcon";
 import { HeroViewport } from "@/components/app/HeroViewport";
 import { MetricCircle } from "@/components/app/MetricCircle";
@@ -54,6 +54,21 @@ function HomePage() {
 
   return (
     <div className="space-y-6 px-5 py-5">
+      <Link
+        to="/brew"
+        className="flex items-center gap-3 rounded-2xl bg-brew-orange px-4 py-3.5 text-brew-ink shadow-[0_10px_24px_rgba(211,93,28,0.28)]"
+      >
+        <span className="grid size-10 place-items-center rounded-full bg-brew-cream/90">
+          <Coffee className="size-5" strokeWidth={2.2} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[16px] font-semibold leading-tight">Brew Request</span>
+          <span className="mt-0.5 block text-[12px] leading-tight text-brew-ink/75">
+            Open /brew · Make me a proper brew
+          </span>
+        </span>
+      </Link>
+
       <section className="flex items-center gap-3">
         <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border bg-surface p-3">
         <div className="flex size-11 items-center justify-center rounded-full bg-amber-500/10 ring-1 ring-amber-400/25">

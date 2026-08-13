@@ -69,6 +69,10 @@
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   --font-pixel: "Press Start 2P", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --color-brew-orange: #d35d1c;
+  --color-brew-ink: #1c1209;
+  --color-brew-cream: #fffdf8;
+  --color-brew-sun: #f5c518;
 }
 
 :root {
@@ -248,4 +252,30 @@
     0 0 12px oklch(0.72 0.17 278 / 55%),
     0 1px 0 oklch(0.18 0.04 265 / 80%);
   letter-spacing: 0.22em;
+}
+
+.brew-app {
+  width: 100%;
+  color: var(--color-brew-ink);
+  font-family: "Source Sans 3", "Avenir Next", "Segoe UI", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html:has(.brew-app),
+body:has(.brew-app) {
+  background: #d35d1c;
+}
+
+.brew-display {
+  font-family: "Alfa Slab One", Rockwell, "Clarendon", "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.brew-serif {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+.brew-script {
+  font-family: "Great Vibes", "Snell Roundhand", "Segoe Script", cursive;
 }

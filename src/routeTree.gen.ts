@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArcadeRouteImport } from './routes/arcade'
+import { Route as BrewRouteImport } from './routes/brew'
 import { Route as MediaRouteImport } from './routes/media'
 import { Route as QuestRouteImport } from './routes/quest'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const ArcadeRoute = ArcadeRouteImport.update({
   id: '/arcade',
   path: '/arcade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrewRoute = BrewRouteImport.update({
+  id: '/brew',
+  path: '/brew',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MediaRoute = MediaRouteImport.update({
@@ -62,6 +68,7 @@ const ApiStravaActivitiesRoute = ApiStravaActivitiesRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/arcade': typeof ArcadeRoute
+  '/brew': typeof BrewRoute
   '/media': typeof MediaRoute
   '/quest': typeof QuestRoute
   '/settings': typeof SettingsRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/arcade': typeof ArcadeRoute
+  '/brew': typeof BrewRoute
   '/media': typeof MediaRoute
   '/quest': typeof QuestRoute
   '/settings': typeof SettingsRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/arcade': typeof ArcadeRoute
+  '/brew': typeof BrewRoute
   '/media': typeof MediaRoute
   '/quest': typeof QuestRoute
   '/settings': typeof SettingsRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/arcade'
+    | '/brew'
     | '/media'
     | '/quest'
     | '/settings'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/arcade'
+    | '/brew'
     | '/media'
     | '/quest'
     | '/settings'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/arcade'
+    | '/brew'
     | '/media'
     | '/quest'
     | '/settings'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArcadeRoute: typeof ArcadeRoute
+  BrewRoute: typeof BrewRoute
   MediaRoute: typeof MediaRoute
   QuestRoute: typeof QuestRoute
   SettingsRoute: typeof SettingsRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/arcade'
       fullPath: '/arcade'
       preLoaderRoute: typeof ArcadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brew': {
+      id: '/brew'
+      path: '/brew'
+      fullPath: '/brew'
+      preLoaderRoute: typeof BrewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/media': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArcadeRoute: ArcadeRoute,
+  BrewRoute: BrewRoute,
   MediaRoute: MediaRoute,
   QuestRoute: QuestRoute,
   SettingsRoute: SettingsRoute,

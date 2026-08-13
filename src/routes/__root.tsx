@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -79,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "8-Bit Runner" },
       {
         name: "description",
@@ -107,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Press+Start+2P&family=Source+Sans+3:wght@600;700&display=swap",
       },
       {
         rel: "stylesheet",
@@ -138,14 +139,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isBrewApp = pathname === "/brew";
 
   return (
     <QueryClientProvider client={queryClient}>
       <GameStateProvider>
-        <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        {isBrewApp ? (
           <Outlet />
-        </AppShell>
+        ) : (
+          <AppShell>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </AppShell>
+        )}
         <Toaster position="top-center" />
       </GameStateProvider>
     </QueryClientProvider>
